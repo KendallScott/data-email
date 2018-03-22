@@ -134,6 +134,5 @@ left join ua_store str on dtl.loc_key = str.loc_key and str.distt_idnt != '999'
 left join ua_pos_coupon_dtl cpn on dtl.pos_trans_key = cpn.pos_trans_key and dtl.sku_key = cpn.sku_key and dtl.TRANS_DETAIL_SQNC_NBR = cpn.COUPON_SQNC_NBR
 left join  email_product_groups product on click.contact_urn||offer.offer_id = contact_urn_offer_id
 and offer.channel = 'EMAIL'
-group by click.contact_urn, offer.offer_name, product.division_group--, sku.div_desc, sku.grp_desc, sku.class_desc, sku.sbclass_desc)
---group by offer_name
+group by click.contact_urn, offer.offer_name, product.division_group
 order by clicks desc;

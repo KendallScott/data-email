@@ -1,4 +1,4 @@
-
+--store orders
 Create table email_product_groups as
 select
 click.contact_urn||offer.offer_id as contact_urn_offer_id,  
@@ -112,7 +112,7 @@ left join ua_pos_coupon_dtl cpn on dtl.pos_trans_key = cpn.pos_trans_key and dtl
 where tm.wk_idnt between 201806 and 201806 
 group by  click.contact_urn||offer.offer_id, offer.offer_name, sku.div_desc, sku.grp_desc, sku.class_desc, sku.sbclass_desc;
 
-
+--ecom orders
 select 
 count(distinct click.indiv_id)                                                                                                                             as clicking_customers,
 count(distinct dtl.indiv_id)                                                                                                                               as store_customers,
@@ -136,3 +136,132 @@ left join  email_product_groups product on click.contact_urn||offer.offer_id = c
 and offer.channel = 'EMAIL'
 group by click.contact_urn, offer.offer_name, product.division_group
 order by clicks desc;
+
+
+Create table email_product_groups_ecom as
+select
+click.contact_urn||offer.offer_id as contact_urn_offer_id,  
+offer.offer_name,
+sku.div_desc, 
+sku.grp_desc, 
+sku.class_desc, 
+sku.sbclass_desc,
+(case
+when ((UPPER(offer.offer_name)) like '%CUSTOM FRAM%' or (UPPER(offer.offer_name)) like '%CUSTOM-FRAM%'or (UPPER(offer.offer_name)) like '%SCOTT BROTHERS%') and sku.grp_desc like '%CUSTOM FRAMING%' then sum(ecom.flfll_net_ttl_amt)
+when ((UPPER(offer.offer_name)) like '%FRAME%' or (UPPER(offer.offer_name)) like'%SHADOW BOXES%' or (UPPER(offer.offer_name)) like'%DISPLAY CASES%') and sku.grp_desc like '%FRAMES%' then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%CRICUT%'                                                              and sku.class_desc like '%CRICUT%'             then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%CRAYOLA%'                                                             and sku.sbclass_desc like '%CRAYOLA%'          then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%YARN%'                                                                and sku.class_desc like '%YARN%'               then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%PATRICK%'                                                             and sku.sbclass_desc like '%PATRICK%'          then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%VALENTINE%'                                                           and sku.sbclass_desc like '%VALENTINE%'        then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%CHRISTMAS%'                                                           and sku.sbclass_desc like '%CHRISTMAS%'        then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%HALLOWEEN%'                                                           and sku.sbclass_desc like '%HALLOWEEN%'        then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%EASTER%'                                                              and sku.sbclass_desc like '%EASTER%'           then sum(ecom.flfll_net_ttl_amt)
+when ((UPPER(offer.offer_name)) like '%WEDDING%' or (UPPER(offer.offer_name)) like '%BRIDAL%' or (UPPER(offer.offer_name)) like '%YOUR BIG DAY%') and sku.class_desc like '%WEDDING%'            then sum(ecom.flfll_net_ttl_amt)
+when ((UPPER(offer.offer_name)) like'%STORAG%' or (UPPER(offer.offer_name)) like '%SCRAPBOOK CASES%' or (UPPER(offer.offer_name)) like '%ORGANIZATION%') and sku.class_desc like '%STORAGE%' then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%DECORATIVE BOX%'                                                      and sku.grp_desc like '%DECORATIVE BOX%'       then sum(ecom.flfll_net_ttl_amt)
+when ((LOWER(offer.offer_name)) like '%dï¿½cor%'or (UPPER(offer.offer_name)) like '%DECOR%')and (UPPER(offer.offer_name)) not like '%DECORAT%'and (UPPER(offer.offer_name)) like '%FLORAL%' and (sku.class_desc like '%DECOR%' or sku.grp_desc like '%FLORAL%')  then sum(ecom.flfll_net_ttl_amt)
+when ((LOWER(offer.offer_name)) like '%%dï¿½cor%' or (UPPER(offer.offer_name)) like '%DECOR%') and (UPPER(offer.offer_name)) not like '%DECORAT%'and sku.class_desc like '%DECOR%' then sum(ecom.flfll_net_ttl_amt)
+when ((UPPER(offer.offer_name)) like '%FLORAL%' or (UPPER(offer.offer_name)) like '%BUSHES%' or (UPPER(offer.offer_name)) like '%WREATHS%' or (UPPER(offer.offer_name)) like '%GARDEN%') and sku.grp_desc like '%FLORAL%' then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%CANVAS%'                                                              and sku.class_desc like  '061 CANVAS%'         then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%RIBBON%'                                                              and sku.class_desc like  '%RIBBON%'            then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%BEADS%'                                                               and sku.class_desc like '%BEADS%'              then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%LIGHTING%'                                                            and sku.class_desc like '%LIGHTING%'           then sum(ecom.flfll_net_ttl_amt)
+when ((UPPER(offer.offer_name)) like '%MINIATURE%' or (UPPER(offer.offer_name)) like '%MINIS%')              and sku.class_desc like '%MINIATURE%'          then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%SEWING%'                                                              and sku.class_desc like '%SEWING%'             then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%ART SUPPLIES%'                                                        and sku.grp_desc like '%ART SUPPLIES%'         then sum(ecom.flfll_net_ttl_amt)
+when ((UPPER(offer.offer_name)) like '%JEWELRY%' or (UPPER(offer.offer_name)) like '%WATCH%' or (UPPER(offer.offer_name)) like '%BRACELET%' or (UPPER(offer.offer_name)) like '%NECKLACE%') and sku.class_desc like '%JEWELRY%'            then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%KIDS%'                                                                and sku.grp_desc like '%KIDS%'                 then sum(ecom.flfll_net_ttl_amt)
+when ((UPPER(offer.offer_name)) like '%KNITTING%' or (UPPER(offer.offer_name)) like '%CROCHET%' or (UPPER(offer.offer_name)) like '%NEEDLE%') and sku.grp_desc like '%NEEDLE%' then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%WASHI%'                                                               and sku.sbclass_desc like '%WASHI%'            then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%PLANNER%'                                                             and sku.class_desc like '%PLANNER%'            then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%PAPERCRAFT%'                                                          and sku.grp_desc like '%PAPERCRAFT%'           then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%CANDLE%'                                                              and sku.grp_desc like '%CANDLE%'               then sum(ecom.flfll_net_ttl_amt)
+when ((UPPER(offer.offer_name)) like '%BAKING%' or (UPPER(offer.offer_name)) like '%WILTON%' or (UPPER(offer.offer_name)) like '%FONDANT%' or (UPPER(offer.offer_name)) like '%CUPCAKES%') and sku.grp_desc like '%FOOD CRAFT%'           then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%T-SHIRTS%'                                                            and sku.class_desc like '%TSHIRT%'             then sum(ecom.flfll_net_ttl_amt)
+when ((UPPER(offer.offer_name)) like '%PAPER PADS%' or (UPPER(offer.offer_name)) like'%PAINT%' or (UPPER(offer.offer_name)) like '%PEN %'or (UPPER(offer.offer_name)) like '%PENCIL%' or (UPPER(offer.offer_name)) like '%EASEL%' or (UPPER(offer.offer_name)) like '%FOOTER ART%') and sku.grp_desc like '%ART SUPPLIES%' then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%DRAFTING TABLE%'                                                      and sku.sbclass_desc like '%DRAFTING TABLE%'   then sum(ecom.flfll_net_ttl_amt)
+when ((UPPER(offer.offer_name)) like '%SEASONAL%' or (UPPER(offer.offer_name)) like'%SPRING%')              and sku.div_desc like '%SEASONAL%'             then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%CRAFT%'                                                               and sku.class_desc like '%GENERAL CRAFT%'      then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%GLUE%'                                                                and sku.sbclass_desc like '%GLUE%'             then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%PHOTO BOXES%'                                                         and sku.sbclass_desc like '%PHOTO BOXES%'      then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%POM POM%'                                                             and sku.sbclass_desc like '%POM POM%'          then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%SCRAPBOOK%'                                                           and sku.sbclass_desc like '%SCRPBOOK%'         then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%JAR%'                                                                 and sku.sbclass_desc like '%JARS%'             then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%METAL STAMPING%'                                                      and sku.sbclass_desc like '%METAL STAMPING%'   then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%CHARGER%'                                                             and sku.class_desc like '%CHARGER%'            then sum(ecom.flfll_net_ttl_amt)
+when (UPPER(offer.offer_name)) like '%SLIME%'                                                               and sku.class_desc like '%CRAFT ADHESIVE%'     then sum(ecom.flfll_net_ttl_amt)
+else null end) as division_sales,
+(case 
+when ((UPPER(offer.offer_name)) like '%CUSTOM FRAM%' or (UPPER(offer.offer_name)) like '%CUSTOM-FRAM%' or (UPPER(offer.offer_name)) like '%SCOTT BROTHERS%') then 'custom framing'
+when ((UPPER(offer.offer_name)) like '%FRAME%' or (UPPER(offer.offer_name)) like'%SHADOW BOXES%' or (UPPER(offer.offer_name)) like'%DISPLAY CASES%')       then 'frames'
+when (UPPER(offer.offer_name)) like '%CRICUT%'                                                                                                             then 'cricut'
+when (UPPER(offer.offer_name)) like '%CRAYOLA%'                                                                                                            then 'crayola'
+when (UPPER(offer.offer_name)) like '%YARN%'                                                                                                               then 'yarn'
+when (UPPER(offer.offer_name)) like '%PATRICK%'                                                                                                            then 'st.patricks day'
+when (UPPER(offer.offer_name)) like '%VALENTINE%'                                                                                                          then 'valentine'
+when (UPPER(offer.offer_name)) like '%CHRISTMAS%'                                                                                                          then 'christmas'
+when (UPPER(offer.offer_name)) like '%HALLOWEEN%'                                                                                                          then 'halloween'
+when (UPPER(offer.offer_name)) like '%EASTER%'                                                                                                             then 'easter'
+when ((UPPER(offer.offer_name)) like '%WEDDING%' or (UPPER(offer.offer_name)) like '%BRIDAL%' or (UPPER(offer.offer_name)) like '%YOUR BIG DAY%')          then 'wedding'
+when ((UPPER(offer.offer_name)) like '%STORAGE%' or (UPPER(offer.offer_name)) like '%SCRAPBOOK CASES%' or (UPPER(offer.offer_name)) like '%ORGANIZATION%') then 'craft storage'
+when (UPPER(offer.offer_name)) like '%DECORATIVE BOX%'                                                                                                     then 'decorative boxes'
+when ((LOWER(offer.offer_name)) like '%dï¿½cor%'or (UPPER(offer.offer_name)) like '%DECOR%' )and (UPPER(offer.offer_name)) not like '%DECORAT%' and (UPPER(offer.offer_name)) like '%FLORAL%' then 'floral and decor'
+when ((LOWER(offer.offer_name)) like '%%dï¿½cor%'or (UPPER(offer.offer_name)) like '%DECOR%') and (UPPER(offer.offer_name)) not like '%DECORAT%'             then 'decor'
+when ((UPPER(offer.offer_name)) like '%FLORAL%' or (UPPER(offer.offer_name)) like '%BUSHES%' or (UPPER(offer.offer_name)) like '%WREATH%' or (UPPER(offer.offer_name)) like '%GARDEN%') then 'floral'
+when (UPPER(offer.offer_name)) like '%CANVAS%'                                                                                                             then 'canvas'
+when (UPPER(offer.offer_name)) like '%RIBBON%'                                                                                                             then 'ribbon'
+when (UPPER(offer.offer_name)) like '%BEADS%'                                                                                                              then 'beads'
+when (UPPER(offer.offer_name)) like '%LIGHTING%'                                                                                                           then 'lighting'
+when ((UPPER(offer.offer_name)) like '%MINIATURE%' or (UPPER(offer.offer_name)) like '%MINIS%')                                                             then 'miniature'
+when (UPPER(offer.offer_name)) like '%SEWING%'                                                                                                             then 'sewing'
+when (UPPER(offer.offer_name)) like '%ART SUPPLIES%'                                                                                                       then 'art supplies'
+when ((UPPER(offer.offer_name)) like '%JEWELRY%' or (UPPER(offer.offer_name)) like '%WATCH%' or (UPPER(offer.offer_name)) like '%BRACELET%' or (UPPER(offer.offer_name)) like '%NECKLACE%') then 'jewelry'
+when (UPPER(offer.offer_name)) like '%KIDS%'                                                                                                               then 'kids'
+when ((UPPER(offer.offer_name)) like '%KNITTING%' or (UPPER(offer.offer_name)) like '%CROCHET%' or (UPPER(offer.offer_name)) like '%NEEDLE%')              then 'knitting and needle crafts'
+when (UPPER(offer.offer_name)) like '%WASHI%'                                                                                                              then 'washi'
+when (UPPER(offer.offer_name)) like '%PLANNER%'                                                                                                            then 'planners'
+when (UPPER(offer.offer_name)) like '%PAPERCRAFT%'                                                                                                         then 'papercrafting'
+when (UPPER(offer.offer_name)) like '%CANDLE%'                                                                                                             then 'candle'
+when ((UPPER(offer.offer_name)) like '%BAKING%' or (UPPER(offer.offer_name)) like '%WILTON%'or (UPPER(offer.offer_name)) like '%FONDANT%' or (UPPER(offer.offer_name)) like '%CUPCAKES%')               then 'baking'
+when (UPPER(offer.offer_name)) like '%T-SHIRTS%'                                                                                                           then 'tshirts'
+when ((UPPER(offer.offer_name)) like '%PAPER PADS%' or (UPPER(offer.offer_name)) like'%PAINT%' or (UPPER(offer.offer_name)) like '%PEN %'or (UPPER(offer.offer_name)) like '%PENCIL%'  or (UPPER(offer.offer_name)) like '%EASEL%' or (UPPER(offer.offer_name)) like '%FOOTER ART%') then 'art supplies'
+when (UPPER(offer.offer_name)) like '%DRAFTING TABLE%'                                                                                                     then 'drafting tables'
+when ((UPPER(offer.offer_name)) like '%SEASONAL%' or (UPPER(offer.offer_name)) like'%SPRING%')                                                             then 'seasonal'
+when (UPPER(offer.offer_name)) like '%CRAFT%'                                                                                                              then 'general crafts'
+when (UPPER(offer.offer_name)) like '%GLUE%'                                                                                                               then 'glue'
+when (UPPER(offer.offer_name)) like '%PHOTO BOXES%'                                                                                                        then 'photo boxes'
+when (UPPER(offer.offer_name)) like '%POM POM%'                                                                                                            then 'pom poms'
+when (UPPER(offer.offer_name)) like '%SCRAPBOOK%'                                                                                                          then 'scrapbook'
+when (UPPER(offer.offer_name)) like '%JAR%'                                                                                                                then 'jar'
+when (UPPER(offer.offer_name)) like '%METAL STAMPING%'                                                                                                     then 'metal stamping'
+when (UPPER(offer.offer_name)) like '%CHARGER%'                                                                                                            then 'charger'
+when (UPPER(offer.offer_name)) like '%SLIME%'                                                                                                              then 'slime'
+else null end)                                                                                                                                             as division_group
+from  unica.ua_email_click click
+inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
+inner join ua_pos_tm_day tm on to_date(click.trans_dt)= tm.day_dt
+left join ua_ecom_order_dtl ecom on click.indiv_id = ecom.indiv_id and to_date(ecom.dmnd_dt) between tm.day_dt and tm.day_dt-2
+left join ua_pos_prod_sku sku on ecom.sku_name = sku.sku_idnt
+inner join ua_email_ref rf on click.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+where tm.wk_idnt between 201806 and 201806 
+group by  click.contact_urn||offer.offer_id, offer.offer_name, sku.div_desc, sku.grp_desc, sku.class_desc, sku.sbclass_desc;
+
+
+select 
+count(distinct click.indiv_id)                                                                              as clicking_customers,
+count(distinct ecom.indiv_id)                                                                               as ecom_customers,
+count(distinct ecom.order_id)                                                                               as ecom_trans,
+sum(ecom.flfll_net_ttl_amt)                                                                                 as ecom_sales,
+sum(ecom.flfll_unit_cnt)                                                                                    as ecom_units,
+offer.offer_name                                                                                            as offer_name,
+product.division_group                                                                                      as division_group,
+sum(product.division_sales)                                                                                 as division_sales
+from unica.ua_email_click click
+inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
+left join ua_ecom_order_dtl ecom on click.indiv_id = ecom.indiv_id and to_date(ecom.dmnd_dt) between to_date(click.trans_dt) and to_date((click.trans_dt-2))
+inner join ua_pos_tm_day tm on to_date(click.trans_dt)= tm.day_dt and to_date(ecom.dmnd_dt) = tm.day_dt 
+inner join ua_email_ref rf on click.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+left join email_product_groups_ecom  product on click.contact_urn||offer.offer_id = contact_urn_offer_id 
+where tm.wk_idnt between 201806 and 201806
+group by offer.offer_name, product.division_group;

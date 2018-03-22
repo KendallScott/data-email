@@ -113,31 +113,6 @@ where tm.wk_idnt between 201806 and 201806
 group by  click.contact_urn||offer.offer_id, offer.offer_name, sku.div_desc, sku.grp_desc, sku.class_desc, sku.sbclass_desc;
 
 --ecom orders
-select 
-count(distinct click.indiv_id)                                                                                                                             as clicking_customers,
-count(distinct dtl.indiv_id)                                                                                                                               as store_customers,
-sum(dtl.extended_sls_amt)                                                                                                                                  as store_sales,
-count(distinct dtl.pos_trans_key)                                                                                                                          as store_transactions,
-count(distinct click.contact_urn)                                                                                                                          as clicks,
-offer.offer_name                                                                                                                                           as offer_name,
-product.division_group,
-sum(product.division_sales)
-from unica.ua_email_click click
-inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
-inner join ua_pos_tm_day tm on to_date(click.trans_dt)= to_date(tm.day_dt)
-inner join ua_email_resolution res on res.contact_urn = click.contact_urn
-inner join ua_campaign camp on camp.campaign_id = res.campaign_id
-left join ua_pos_trans_dtl dtl on click.indiv_id = dtl.indiv_id and dtl.day_idnt between tm.day_idnt and tm.day_idnt+2 and dtl.trans_typ_key in(19,22,33)
-inner join ua_email_ref rf on click.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
-left join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key
-left join ua_store str on dtl.loc_key = str.loc_key and str.distt_idnt != '999'
-left join ua_pos_coupon_dtl cpn on dtl.pos_trans_key = cpn.pos_trans_key and dtl.sku_key = cpn.sku_key and dtl.TRANS_DETAIL_SQNC_NBR = cpn.COUPON_SQNC_NBR
-left join  email_product_groups product on click.contact_urn||offer.offer_id = contact_urn_offer_id
-and offer.channel = 'EMAIL'
-group by click.contact_urn, offer.offer_name, product.division_group
-order by clicks desc;
-
-
 Create table email_product_groups_ecom as
 select
 click.contact_urn||offer.offer_id as contact_urn_offer_id,  

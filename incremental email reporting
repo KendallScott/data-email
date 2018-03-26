@@ -1,0 +1,233 @@
+-----Start ROCK code-----
+DEFINE start_day_idnt = '2018050';
+DEFINE end_day_idnt = '2018056';
+DEFINE wk_idnt = '201808';
+DEFINE start_dt = '25mar2018';
+DEFINE end_dt = '31mar2018';
+DEFINE start_date = ''25-MAR-18'';
+DEFINE end_date = ''31-MAR-18'';
+DEFINE week = '0325_0331';
+set worksheetname incremental_email_&week;
+
+--us control
+select 
+distinct(rundate),
+(substr(rundate, 1, 9))   as run_date,
+tm.wk_idnt+1
+from unica.tmp_us_weekly_control_hh
+inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
+order by rundate desc;
+13-MAR-18 08.13.14.000000000 AM
+
+select
+--can control 
+select 
+distinct(rundate)
+from unica.tmp_can_weekly_control_hh
+order by rundate desc
+13-FEB-18 08.11.45.000000000 AM
+
+select 
+count(distinct hist.contact_urn),
+rf.ca_valid_email_flg
+from ua_email_contact_history hist
+  Inner Join Ua_Email_Ref             Rf On Hist.Email_Id        = Rf.Email_Id
+where hist.wk_idnt= &wk_idnt
+group by rf.ca_valid_email_flg;
+
+
+--create table of all email ids, and us or canada from contact history
+create table email_id_&week  as
+select distinct
+   rf.email_id,
+   rf.ca_valid_email_flg as canada
+from         ua_email_contact_history hist
+  inner join ua_campaign              camp on hist.campaign_src_cd = camp.campaign_src_cd and hist.campaign_id = camp.campaign_id
+  inner join ua_email_ref             rf on hist.email_id        = rf.email_id
+where to_date(camp.start_dt) between &start_date and &end_date;
+
+--emailed hh us
+create table emailed_hh_us_&week as
+select distinct rf.hh_id
+from         ua_email_ref       rf
+  inner join email_id_&week mail on rf.email_id = mail.email_id
+Where Mail.Canada = 'N';
+
+--emailed hh can
+create table emailed_hh_ca_&week as
+select distinct rf.hh_id
+from         ua_email_ref       rf
+  inner join email_id_&week mail on rf.email_id = mail.email_id
+Where Mail.Canada = 'Y';
+
+--control tables
+create table control_hh_us_&week as
+select distinct rf.hh_id
+from  unica.tmp_us_weekly_control_hh ctrl
+inner join  ua_email_ref rf on ctrl.email_id = rf.email_id
+inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
+  where tm.wk_idnt+1 = &wk_idnt
+  and rf.hh_id not in (select hh_id from emailed_hh_us_&week);
+
+create table control_hh_ca_&week as
+select distinct rf.hh_id
+from  unica.tmp_can_weekly_control_hh ctrl
+inner join  ua_email_ref rf on ctrl.email_id = rf.email_id
+inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
+  where tm.wk_idnt+1 = &wk_idnt
+  and rf.hh_id not in (select hh_id from emailed_hh_ca_&week);
+
+--control us 
+SELECT 
+count(distinct con.hh_id)                                                                                                               as emailed_households,
+sum((coalesce(stre.store_trans,0))+ (coalesce(ecom.ecom_trans, 0)))                                                                     as trans,
+sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))                                                                     as sales,
+(round(sum(stre.store_gm)/sum(stre.store_sales), 4)) *   sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))            as gm,
+count(distinct(coalesce (stre.hh_id, ecom.hh_id)))                                                                                      as households,
+sum(stre.store_sales)                                                                                                                   as store_sales,
+sum(stre.store_gm)                                                                                                                      as store_gm
+from control_hh_us_&week  con
+full outer join (select
+          ind.hh_id,
+          count(distinct dtl.pos_trans_key)                   as store_trans,
+          sum(dtl.extended_sls_amt)                           as store_sales,
+          sum(dtl.grs_mrgn_amt)                               as store_gm,
+          sum(dtl.qty)                                        as store_units
+         from         ua_pos_trans_dtl dtl
+         inner join ua_store str on dtl.loc_key = str.loc_key
+         inner join ua_individual ind  on dtl.indiv_id = ind.indiv_id
+         inner join control_hh_us_&week  con  on ind.hh_id = con.hh_id
+         where dtl.wk_idnt between &wk_idnt and &wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+        group by ind.hh_id) stre on stre.hh_id = con.hh_id
+    full outer join(
+    select
+        ind.hh_id,
+        count(distinct ecom.order_id)                       as ecom_trans,
+        sum(ecom.flfll_net_ttl_amt)                         as ecom_sales,
+        sum(ecom.flfll_unit_cnt)                            as ecom_units
+        from ua_ecom_order_dtl   ecom
+        inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
+        inner join ua_individual ind  on ecom.indiv_id = ind.indiv_id
+        inner join control_hh_us_&week  con  on ind.hh_id = con.hh_id
+        where tm.wk_idnt between  &wk_idnt and &wk_idnt
+        group by ind.hh_id) ecom on stre.hh_id = ecom.hh_id;
+        
+--emailed us
+SELECT 
+count(distinct con.hh_id)                                                                                                               as emailed_households,
+sum((coalesce(stre.store_trans,0))+ (coalesce(ecom.ecom_trans, 0)))                                                                     as trans,
+sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))                                                                     as sales,
+(round(sum(stre.store_gm)/sum(stre.store_sales), 4)) *   sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))            as gm,
+count(distinct(coalesce (stre.hh_id, ecom.hh_id)))                                                                                      as households,
+sum(stre.store_sales)                                                                                                                   as store_sales,
+sum(stre.store_gm)                                                                                                                      as store_gm
+from emailed_hh_us_&week  con
+full outer join (select
+          ind.hh_id,
+          count(distinct dtl.pos_trans_key)                   as store_trans,
+          sum(dtl.extended_sls_amt)                           as store_sales,
+          sum(dtl.grs_mrgn_amt)                               as store_gm,
+          sum(dtl.qty)                                        as store_units
+         from         ua_pos_trans_dtl dtl
+         inner join ua_store str on dtl.loc_key = str.loc_key
+         inner join ua_individual ind  on dtl.indiv_id = ind.indiv_id
+         inner join emailed_hh_us_&week  con  on ind.hh_id = con.hh_id
+         where dtl.wk_idnt between &wk_idnt and &wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+         and con.hh_id not in (select hh_id from control_hh_us_&week)
+        group by ind.hh_id) stre on stre.hh_id = con.hh_id
+    full outer join(
+    select
+        ind.hh_id,
+        count(distinct ecom.order_id)                       as ecom_trans,
+        sum(ecom.flfll_net_ttl_amt)                         as ecom_sales,
+        sum(ecom.flfll_unit_cnt)                            as ecom_units
+        from ua_ecom_order_dtl   ecom
+        inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
+        inner join ua_individual ind  on ecom.indiv_id = ind.indiv_id
+        inner join emailed_hh_us_&week  con  on ind.hh_id = con.hh_id
+        where tm.wk_idnt between  &wk_idnt and &wk_idnt
+        and con.hh_id not in (select hh_id from control_hh_us_&week)
+        group by ind.hh_id) ecom on stre.hh_id = ecom.hh_id
+where con.hh_id not in (select hh_id from control_hh_us_&week);
+
+--control can
+select
+  count(distinct con.hh_id)             as households
+  ,count(distinct dtl.pos_trans_key)    as transactions
+  ,sum(dtl.extended_sls_amt)            as sales
+  ,sum(dtl.grs_mrgn_amt)                as gm
+from control_hh_ca_&week  con
+  left join ua_individual    ind        on con.hh_id    = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.trans_typ_key in(19,22,33);
+
+--emailed can
+select
+  count(distinct con.hh_id)             as households
+  ,count(distinct dtl.pos_trans_key)    as transactions
+  ,sum(dtl.extended_sls_amt)            as sales
+  ,sum(dtl.grs_mrgn_amt)                as gm
+from emailed_hh_ca_&week  con
+  left join ua_individual    ind        on con.hh_id    = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.day_idnt between &start_day_idnt and &end_day_idnt and dtl.trans_typ_key in(19,22,33);
+
+--emailed us by day
+SELECT 
+(coalesce(stre.day_idnt, ecom.day_idnt))                                                                                                as day_idnt,
+count(distinct con.hh_id)                                                                                                               as emailed_households,
+sum((coalesce(stre.store_trans,0))+ (coalesce(ecom.ecom_trans, 0)))                                                                     as trans,
+sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))                                                                     as sales,
+(round(sum(stre.store_gm)/sum(stre.store_sales), 4)) *   sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))            as gm,
+count(distinct(coalesce (stre.hh_id, ecom.hh_id)))                                                                                      as households,
+sum(stre.store_sales)                                                                                                                   as store_sales,
+sum(stre.store_gm)                                                                                                                      as store_gm
+from true_emailed_us_&week  con
+full outer join (select
+          dtl.day_idnt,
+          ind.hh_id,
+          count(distinct dtl.pos_trans_key)                   as store_trans,
+          sum(dtl.extended_sls_amt)                           as store_sales,
+          sum(dtl.grs_mrgn_amt)                               as store_gm,
+          sum(dtl.qty)                                        as store_units
+         from         ua_pos_trans_dtl dtl
+         inner join ua_store str on dtl.loc_key = str.loc_key
+         inner join ua_individual ind  on dtl.indiv_id = ind.indiv_id
+         inner join true_emailed_us_&week  con  on ind.hh_id = con.hh_id
+         where dtl.wk_idnt between &wk_idnt and &wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+        group by ind.hh_id, dtl.day_idnt) stre on stre.hh_id = con.hh_id
+    full outer join(
+    select
+        tm.day_idnt,
+        ind.hh_id,
+        count(distinct ecom.order_id)                       as ecom_trans,
+        sum(ecom.flfll_net_ttl_amt)                         as ecom_sales,
+        sum(ecom.flfll_unit_cnt)                            as ecom_units
+        from ua_ecom_order_dtl   ecom
+        inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
+        inner join ua_individual ind  on ecom.indiv_id = ind.indiv_id
+        inner join true_emailed_us_&week  con  on ind.hh_id = con.hh_id
+        where tm.wk_idnt between  &wk_idnt and &wk_idnt
+        group by ind.hh_id, tm.day_idnt) ecom on stre.hh_id = ecom.hh_id and stre.day_idnt = ecom.day_idnt
+        group by (coalesce(stre.day_idnt, ecom.day_idnt))
+        order by (coalesce(stre.day_idnt, ecom.day_idnt));
+ 
+--best email detailed
+select 
+count(distinct click.contact_urn) as clicks,
+offer.offer_name
+from Unica.Ua_Email_Click  click
+inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
+inner join ua_email_resolution res on res.contact_urn = click.contact_urn
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+where click.wk_idnt = 201807
+and camp.campaign_name like '20180324%'
+and camp.campaign_name like '%PROMO_US%'
+--and click.indiv_id in (select indiv_id from  ua_email_ref rf where rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y')
+group by offer.offer_name
+order by clicks desc
+
+
+Drop Table Email_Id_&week;
+Drop Table Emailed_Hh_Us_&week;
+Drop Table Emailed_Hh_Ca_&week;
+Drop Table Control_Hh_Us_&week;
+Drop Table Control_Hh_CA_&week;

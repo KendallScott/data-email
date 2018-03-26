@@ -1,0 +1,167 @@
+select 
+distinct(rundate),
+(substr(rundate, 1, 9))   as run_date,
+tm.wk_idnt+1
+from unica.tmp_us_weekly_control_hh
+inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
+order by rundate desc;
+drop table customer_clicks;
+create table customer_clicks as 
+select
+distinct
+click.contact_urn||offer.offer_name as contact_urn_offer_name,
+offer.offer_name,
+rf.indiv_id,
+click.contact_urn,
+campaign_name,
+tm.day_idnt
+from  unica.ua_email_click click
+inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
+inner join ua_pos_tm_day tm on to_date(click.trans_dt)= tm.day_dt
+inner join ua_email_ref rf on click.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+inner join ua_email_resolution res on res.contact_urn = click.contact_urn
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+where click.wk_idnt = 201806
+and offer.channel= 'EMAIL';
+select * from customer_clicks;
+drop table email_product_groups_ecom;
+
+Create table email_product_groups_ecom as
+select
+distinct
+clicks.contact_urn||clicks.offer_name as contact_urn_offer_name,  
+clicks.offer_name,
+when sku.grp_desc like
+sku.sbclass_desc,
+case when  sku.grp_desc = '98 NON-MERCHANDISING'    then sum(ecom.dmnd_net_ttl_amt) 
+when  sku.grp_desc = 'MINI SEASON'                  then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'PACKAGING & PARTY'            then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'APPAREL CRAFTS'               then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'PAINT & DECO ART'             then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'CHRISTMAS'                    then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'RIBBON &  WEDDING'            then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'JEWELRY & BEADS'              then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'NEEDLE CRAFTS'                then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'WOOD CRAFTS'                  then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'HOME ACCENTS'                 then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'TECH & MARTHA STEWAR'         then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'FOOD CRAFT'                   then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'FRAMES & WALL DECOR'          then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'CANDLES'                      then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'BOOKS & MAGAZINES'            then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'KIDS CRAFTS'                  then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'CELEBRATIONS'                 then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'FLORAL'                       then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'ACCENTS & CONTAINERS'         then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'STORE EVENTS & AS IS'         then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'CUSTOM FLORAL'                then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'SCRAPBOOKING'                 then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = '15 CUSTOM FRAMING'            then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'PAPERCRAFTING'                then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'NON-MERCHANDISING'            then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'UNFINISHED SURFACES'          then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'ART SUPPLIES'                 then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'IMPULSE'                      then sum(ecom.dmnd_net_ttl_amt)
+when  sku.grp_desc = 'CUSTOM FRAMING'               then sum(ecom.dmnd_net_ttl_amt)
+else null end) as group_sales
+
+(case
+when ((UPPER(clicks.offer_name)) like '%CUSTOM FRAM%' or (UPPER(clicks.offer_name)) like '%CUSTOM-FRAM%'or (UPPER(clicks.offer_name)) like '%SCOTT BROTHERS%') and sku.sbclass_desc like '%CUSTOM FRAMING%' then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%FRAME%' or (UPPER(clicks.offer_name)) like'%SHADOW BOXES%' or (UPPER(clicks.offer_name)) like'%DISPLAY CASES%') and sku.sbclass_desc like '%FRAMES%' then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%CRICUT%'                                                              and sku.sbclass_desc like '%CRICUT%'             then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%CRAYOLA%'                                                             and sku.sbclass_desc like '%CRAYOLA%'          then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%YARN%'                                                                and sku.sbclass_desc like '%YARN'               then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%PATRICK%'                                                             and sku.sbclass_desc like '%PATRICK%'          then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%VALENTINE%'                                                           and sku.sbclass_desc like '%VALENTINE%'        then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%CHRISTMAS%'                                                           and sku.sbclass_desc like '%CHRISTMAS%'        then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%HALLOWEEN%'                                                           and sku.sbclass_desc like '%HALLOWEEN%'        then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%EASTER%'                                                              and sku.sbclass_desc like '%EASTER%'           then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%WEDDING%' or (UPPER(clicks.offer_name)) like '%BRIDAL%' or (UPPER(clicks.offer_name)) like '%YOUR BIG DAY%') and sku.sbclass_desc like '%WEDDING%'            then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like'%STORAG%' or (UPPER(clicks.offer_name)) like '%SCRAPBOOK CASES%' or (UPPER(clicks.offer_name)) like '%ORGANIZATION%') and sku.sbclass_desc like '%STORAGE%' then sum(ecom.dmnd_net_ttl_amt)
+/*when ((LOWER(clicks.offer_name)) like '%%dï¿½cor%' or (UPPER(clicks.offer_name)) like '%DECOR%') and (UPPER(clicks.offer_name)) not like '%DECORAT%'and sku.class_desc like '%DECOR%' then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%FLORAL%' or (UPPER(clicks.offer_name)) like '%BUSHES%' or (UPPER(clicks.offer_name)) like '%WREATHS%' or (UPPER(clicks.offer_name)) like '%GARDEN%') and sku.grp_desc like '%FLORAL%' then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%CANVAS%'                                                              and sku.class_desc like  '061 CANVAS%'         then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%RIBBON%'                                                              and sku.class_desc like  '%RIBBON%'            then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%BEADS%'                                                               and sku.class_desc like '%BEADS%'              then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%LIGHTING%'                                                            and sku.class_desc like '%LIGHTING%'           then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%MINIATURE%' or (UPPER(clicks.offer_name)) like '%MINIS%')              and sku.class_desc like '%MINIATURE%'          then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%SEWING%'                                                              and sku.class_desc like '%SEWING%'             then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%ART SUPPLIES%'                                                        and sku.grp_desc like '%ART SUPPLIES%'         then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%JEWELRY%' or (UPPER(clicks.offer_name)) like '%WATCH%' or (UPPER(clicks.offer_name)) like '%BRACELET%' or (UPPER(clicks.offer_name)) like '%NECKLACE%') and sku.class_desc like '%JEWELRY%'            then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%KIDS%'                                                                and sku.grp_desc like '%KIDS%'                 then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%KNITTING%' or (UPPER(clicks.offer_name)) like '%CROCHET%' or (UPPER(clicks.offer_name)) like '%NEEDLE%') and sku.grp_desc like '%NEEDLE%' then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%WASHI%'                                                               and sku.sbclass_desc like '%WASHI%'            then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%PLANNER%'                                                             and sku.class_desc like '%PLANNER%'            then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%PAPERCRAFT%'                                                          and sku.grp_desc like '%PAPERCRAFT%'           then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%CANDLE%'                                                              and sku.grp_desc like '%CANDLE%'               then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%BAKING%' or (UPPER(clicks.offer_name)) like '%WILTON%' or (UPPER(clicks.offer_name)) like '%FONDANT%' or (UPPER(clicks.offer_name)) like '%CUPCAKES%') and sku.grp_desc like '%FOOD CRAFT%'           then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%T-SHIRTS%'                                                            and sku.class_desc like '%TSHIRT%'             then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%PAPER PADS%' or (UPPER(clicks.offer_name)) like'%PAINT%' or (UPPER(clicks.offer_name)) like '%PEN %'or (UPPER(clicks.offer_name)) like '%PENCIL%' or (UPPER(clicks.offer_name)) like '%EASEL%' or (UPPER(clicks.offer_name)) like '%FOOTER ART%') and sku.grp_desc like '%ART SUPPLIES%' then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%DRAFTING TABLE%'                                                      and sku.sbclass_desc like '%DRAFTING TABLE%'   then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%SEASONAL%' or (UPPER(clicks.offer_name)) like'%SPRING%')              and sku.div_desc like '%SEASONAL%'             then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%CRAFT%'                                                               and sku.class_desc like '%GENERAL CRAFT%'      then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%GLUE%'                                                                and sku.sbclass_desc like '%GLUE%'             then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%PHOTO BOXES%'                                                         and sku.sbclass_desc like '%PHOTO BOXES%'      then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%POM POM%'                                                             and sku.sbclass_desc like '%POM POM%'          then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%SCRAPBOOK%'                                                           and sku.sbclass_desc like '%SCRPBOOK%'         then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%JAR%'                                                                 and sku.sbclass_desc like '%JARS%'             then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%METAL STAMPING%'                                                      and sku.sbclass_desc like '%METAL STAMPING%'   then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%CHARGER%'                                                             and sku.class_desc like '%CHARGER%'            then sum(ecom.dmnd_net_ttl_amt)
+when (UPPER(clicks.offer_name)) like '%SLIME%'                                                               and sku.class_desc like '%CRAFT ADHESIVE%'     then sum(ecom.dmnd_net_ttl_amt)
+--when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%'or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%' and ecom.promoid is not null) then sum(ecom.dmnd_net_ttl_amt)
+*/
+else null end)                                                as division_sales,
+else null end)                                                                                                                                             as division_group
+from  customer_clicks clicks
+inner join ua_pos_tm_day tm on clicks.day_idnt = tm.day_idnt
+inner join ua_ecom_order_dtl ecom on clicks.indiv_id = ecom.indiv_id and (to_date(ecom.dmnd_dt) = tm.day_dt or to_date(ecom.dmnd_dt) = tm.day_dt-1)
+left join ua_pos_prod_sku sku on ecom.sku_name = sku.sku_idnt
+where tm.wk_idnt between 201806 and 201806 
+and ecom.line_item_type = 'DEMAND'
+group by clicks.contact_urn, clicks.offer_name, sku.sbclass_desc;
+
+
+select 
+count(distinct clicks.indiv_id)                                                                                                                             as clicking_customers,
+--count(distinct dtl.indiv_id)                                                                                                                               as store_customers,
+--sum(dtl.extended_sls_amt)                                                                                                                                  as store_sales,
+--count(distinct dtl.pos_trans_key)                                                                                                                          as store_transactions,
+--product.division_group                                                                                                                                     as store_product_type,
+--sum(product.division_sales)                                                                                                                                as store_product_sales,
+count(distinct clicks.contact_urn_offer_name)                                                                                                                          as clicks,
+count(distinct ecom.indiv_id)                                                                                                                              as ecom_customers,
+count(distinct ecom.order_id)                                                                                                                              as ecom_trans,
+sum(ecom.dmnd_net_ttl_amt)                                                                                                                                as ecom_sales,
+sum(ecom.dmnd_unit_cnt)                                                                                                                                   as ecom_units,
+clicks.offer_name                                                                                                                                           as offer_name,
+product_ecom.division_group                                                                                                                                as ecom_product_type,
+sum(product_ecom.division_sales)                                                                                                                           as ecom_product_sales
+from customer_clicks clicks
+inner join ua_pos_tm_day tm on clicks.day_idnt= tm.day_idnt
+left join ua_pos_trans_dtl dtl on clicks.indiv_id = dtl.indiv_id and dtl.day_idnt between tm.day_idnt and tm.day_idnt+2 and dtl.trans_typ_key in(19,22,33)
+left join ua_store str on dtl.loc_key = str.loc_key and str.distt_idnt != '999'
+left join ua_pos_coupon_dtl cpn on dtl.pos_trans_key = cpn.pos_trans_key and dtl.sku_key = cpn.sku_key and dtl.TRANS_DETAIL_SQNC_NBR = cpn.COUPON_SQNC_NBR
+left join ua_ecom_order_dtl ecom on ecom.indiv_id = clicks.indiv_id and (to_date(ecom.dmnd_dt) = tm.day_dt or to_date(ecom.dmnd_dt) = tm.day_dt-1) 
+--left join  email_product_groups product on clicks.contact_urn||offer.offer_id = product.contact_urn_offer_id
+left join  email_product_groups_ecom product_ecom on  clicks.contact_urn_offer_name= product_ecom.contact_urn_offer_name
+where tm.wk_idnt between 201806 and 201806
+group by clicks.offer_name, product_ecom.division_group;
+
+select 
+count(distinct click.contact_urn)       as clicks,
+offer.offer_name                        as offer_name,
+sum(dtl.extended_sls_amt)               as store_sales, 
+count(distinct dtl.pos_Trans_key)       as transactions
+from Unica.Ua_Email_Click  click
+inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
+inner join ua_pos_tm_day tm on to_date(click.trans_dt)= tm.day_dt
+inner join ua_email_resolution res on res.contact_urn = click.contact_urn
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+inner join ua_email_ref rf on click.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+left join ua_pos_trans_dtl dtl on click.indiv_id = dtl.indiv_id and dtl.day_idnt between tm.day_idnt and tm.day_idnt+2 and dtl.trans_typ_key in(19,22,33)
+left join ua_store str on dtl.loc_key = str.loc_key and str.distt_idnt != '999'
+where click.wk_idnt = 201807
+and offer.offer_name like '50% Off Any One Regular Price Item%%'
+group by offer.offer_name
+order by clicks desc
+

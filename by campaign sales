@@ -1,0 +1,42 @@
+   create table emailed_transactors as
+   select
+   camp.campaign_name,
+   count(distinct coalesce(dtl.indiv_id, ecom.indiv_id)) as customers,
+   count(distinct ecom.order_id)                         as ecom_trans,
+   sum(ecom.dmnd_net_ttl_amt)                           as ecom_sales,
+   sum(ecom.dmnd_unit_cnt)                              as ecom_units,
+   count(distinct dtl.pos_trans_key)                     as store_trans,
+   sum(dtl.extended_sls_amt)                             as store_sales,
+   sum(dtl.grs_mrgn_amt)                                 as store_gm,
+   sum(dtl.qty)                                          as store_units
+   from ua_email_contact_history email
+   inner join ua_campaign camp on email.campaign_id = camp.campaign_id
+   inner join ua_pos_tm_day tm on to_date(email.output_dt) = tm.day_dt
+   left join ua_pos_trans_dtl dtl on email.indiv_id = dtl.indiv_id and dtl.day_idnt = tm.day_idnt  
+   left join ua_ecom_order_dtl ecom on email.indiv_id = ecom.indiv_id and to_date(ecom.dmnd_dt) = (tm.day_dt) 
+   where tm.wk_idnt = 201807
+   group by camp.campaign_name;
+   
+   --wip
+   
+     
+    SELECT 
+         res.wk_idnt,
+         camp.campaign_name,
+         (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1)))   as campaign_name,
+         COUNT (distinct res.contact_urn)                                           AS sent,
+         COUNT (res.opened_dt)                                                      AS opens,         
+         COUNT (res.max_click_dt)                                                   AS clicks ,
+         sum(opened_cnt)                                                            as full_opens, 
+         sum(click_cnt)                                                             as full_clicks,
+         count(distinct trns.pos_trans_key)                                         as transactions,
+         sum(trns.trans_total_amt - nvl(trns.trans_tax_amt,0))                      as sales
+    FROM ua_email_resolution res
+    inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+    inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+    inner join ua_pos_trans trns on  trns.indiv_id = rf.indiv_id and (trns.trans_datetime=res.opened_dt or  trns.trans_datetime=res.opened_dt-1) and trns.trans_typ_key in (19,22,33)
+   WHERE res.wk_idnt BETWEEN 201807 AND 201807
+   and camp.campaign_name not like '%_CA%' and camp.campaign_name not like '%_QUE%' and camp.campaign_name not like '%TRG_%' and camp.campaign_name not like '%WELCO%'
+   and camp.channel = 'EMAIL'
+GROUP BY res.wk_idnt, camp.campaign_name
+Order By Res.Wk_Idnt, Camp.Campaign_Name;

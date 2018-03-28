@@ -1,42 +1,60 @@
-   create table emailed_transactors as
-   select
-   camp.campaign_name,
-   count(distinct coalesce(dtl.indiv_id, ecom.indiv_id)) as customers,
-   count(distinct ecom.order_id)                         as ecom_trans,
-   sum(ecom.dmnd_net_ttl_amt)                           as ecom_sales,
-   sum(ecom.dmnd_unit_cnt)                              as ecom_units,
-   count(distinct dtl.pos_trans_key)                     as store_trans,
-   sum(dtl.extended_sls_amt)                             as store_sales,
-   sum(dtl.grs_mrgn_amt)                                 as store_gm,
-   sum(dtl.qty)                                          as store_units
-   from ua_email_contact_history email
-   inner join ua_campaign camp on email.campaign_id = camp.campaign_id
-   inner join ua_pos_tm_day tm on to_date(email.output_dt) = tm.day_dt
-   left join ua_pos_trans_dtl dtl on email.indiv_id = dtl.indiv_id and dtl.day_idnt = tm.day_idnt  
-   left join ua_ecom_order_dtl ecom on email.indiv_id = ecom.indiv_id and to_date(ecom.dmnd_dt) = (tm.day_dt) 
-   where tm.wk_idnt = 201807
-   group by camp.campaign_name;
-   
-   --wip
-   
-     
-    SELECT 
-         res.wk_idnt,
-         camp.campaign_name,
-         (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1)))   as campaign_name,
-         COUNT (distinct res.contact_urn)                                           AS sent,
-         COUNT (res.opened_dt)                                                      AS opens,         
-         COUNT (res.max_click_dt)                                                   AS clicks ,
-         sum(opened_cnt)                                                            as full_opens, 
-         sum(click_cnt)                                                             as full_clicks,
-         count(distinct trns.pos_trans_key)                                         as transactions,
-         sum(trns.trans_total_amt - nvl(trns.trans_tax_amt,0))                      as sales
-    FROM ua_email_resolution res
-    inner join ua_campaign camp on camp.campaign_id = res.campaign_id
-    inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
-    inner join ua_pos_trans trns on  trns.indiv_id = rf.indiv_id and (trns.trans_datetime=res.opened_dt or  trns.trans_datetime=res.opened_dt-1) and trns.trans_typ_key in (19,22,33)
-   WHERE res.wk_idnt BETWEEN 201807 AND 201807
-   and camp.campaign_name not like '%_CA%' and camp.campaign_name not like '%_QUE%' and camp.campaign_name not like '%TRG_%' and camp.campaign_name not like '%WELCO%'
-   and camp.channel = 'EMAIL'
-GROUP BY res.wk_idnt, camp.campaign_name
-Order By Res.Wk_Idnt, Camp.Campaign_Name;
+create table emailed_opens as 
+select
+res.wk_idnt                                                                as wk_idnt,
+(substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1)))   as campaign_name,
+rf.indiv_id                                                                as indiv_id,
+max(tm.day_idnt)                                                         as last_open
+from ua_email_resolution res
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+inner join ua_pos_tm_day tm on to_date(res.opened_dt) = tm.day_dt
+where res.wk_idnt between 201701 and 201807
+and res.opened_dt is not null
+group by res.wk_idnt, campaign_name, rf.indiv_id;
+
+select wk_idnt,
+count(distinct indiv_id)
+from emailed_opens
+group by wk_idnt
+order by wk_idnt asc;
+
+create table email_campaign_sales as
+SELECT 
+eo.wk_idnt,
+eo.campaign_name,
+count(distinct eo.indiv_id)                                                                                                             as customers_opened,
+count(distinct coalesce(stre.indiv_id, ecom.indiv_id))                                                                                  as customers_shopped,
+sum((coalesce(stre.store_trans,0))+ (coalesce(ecom.ecom_trans, 0)))                                                                     as trans,
+sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))                                                                     as sales,
+(round(sum(stre.store_gm)/sum(stre.store_sales), 4)) *   sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))            as gm,
+sum(stre.store_sales)                                                                                                                   as store_sales,
+sum(stre.store_gm)                                                                                                                      as store_gm
+from emailed_opens  eo
+full outer join (select
+          tm.wk_idnt,
+          dtl.indiv_id,
+          count(distinct dtl.pos_trans_key)                   as store_trans,
+          sum(dtl.extended_sls_amt)                           as store_sales,
+          sum(dtl.grs_mrgn_amt)                               as store_gm,
+          sum(dtl.qty)                                        as store_units
+         from         ua_pos_trans_dtl dtl
+         inner join ua_store str on dtl.loc_key = str.loc_key
+         inner join ua_pos_tm_day tm on dtl.day_idnt = tm.day_idnt
+         inner join emailed_opens  eo  on eo.indiv_id = dtl.indiv_id and eo.last_open = tm.day_idnt
+         where dtl.wk_idnt between 201701 and 201807 and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+        group by dtl.indiv_id, tm.wk_idnt) stre on stre.indiv_id = eo.indiv_id and stre.wk_idnt = eo.wk_idnt
+    full outer join(
+    select
+        tm.wk_idnt,
+        ecom.indiv_id,
+        count(distinct ecom.order_id)                       as ecom_trans,
+        sum(ecom.flfll_net_ttl_amt)                         as ecom_sales,
+        sum(ecom.flfll_unit_cnt)                            as ecom_units
+        from ua_ecom_order_dtl   ecom
+        inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
+        inner join emailed_opens  eo  on ecom.indiv_id=eo.indiv_id and eo.last_open = tm.day_idnt
+        where tm.wk_idnt between 201701 and 201807
+        group by ecom.indiv_id, tm.wk_idnt) ecom on stre.indiv_id = ecom.indiv_id and ecom.wk_idnt = stre.wk_idnt
+where (eo.campaign_name not like '%TRG%'and eo.campaign_name not like '%CAN%'and eo.campaign_name not like '%QUE%')
+group by eo.campaign_name, eo.wk_idnt
+order by eo.wk_idnt, eo.campaign_name;

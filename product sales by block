@@ -17,6 +17,7 @@ where click.wk_idnt = 201807 and offer.channel= 'EMAIL'
 group by camp.campaign_name, offer.offer_name, rf.indiv_id,  click.contact_urn;
 
 --store products
+drop table email_product_groups_ecom;
 Create table email_product_groups_ecom as
 select
 distinct
@@ -71,7 +72,7 @@ when (UPPER(clicks.offer_name)) like '%JAR%'                                    
 when (UPPER(clicks.offer_name)) like '%METAL STAMPING%'                                                      and sku.sbclass_desc like '%METAL STAMPING%'   then  sum(ecom.dmnd_net_ttl_amt)
 when (UPPER(clicks.offer_name)) like '%CHARGER%'                                                             and sku.class_desc like '%CHARGER%'            then  sum(ecom.dmnd_net_ttl_amt)
 when (UPPER(clicks.offer_name)) like '%SLIME%'                                                               and sku.class_desc like '%CRAFT ADHESIVE%'     then  sum(ecom.dmnd_net_ttl_amt)
---when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%'or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%' and ecom.promoid is not null) then sum sum(ecom.dmnd_net_ttl_amt))
+when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') and ecom.promoid is not null then sum(ecom.dmnd_net_ttl_amt)
 else null end)                                                as division_sales,
 (case 
 when ((UPPER(clicks.offer_name)) like '%CUSTOM FRAM%' or (UPPER(clicks.offer_name)) like '%CUSTOM-FRAM%' or (UPPER(clicks.offer_name)) like '%SCOTT BROTHERS%') then 'custom framing'
@@ -118,7 +119,7 @@ when (UPPER(clicks.offer_name)) like '%JAR%'                                    
 when (UPPER(clicks.offer_name)) like '%METAL STAMPING%'                                                                                                     then 'metal stamping'
 when (UPPER(clicks.offer_name)) like '%CHARGER%'                                                                                                            then 'charger'
 when (UPPER(clicks.offer_name)) like '%SLIME%'                                                                                                              then 'slime'
---when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%'or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') then 'coupon'
+when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%'or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') then 'coupon'
 else null end)                                                                                                                                             as division_group
 from  customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click = tm.day_idnt
@@ -126,7 +127,10 @@ inner join ua_ecom_order_dtl ecom on clicks.indiv_id = ecom.indiv_id and to_date
 left join ua_pos_prod_sku sku on ecom.sku_name = sku.sku_idnt
 where tm.wk_idnt between 201807 and 201807 
 and ecom.line_item_type = 'DEMAND'
-group by clicks.contact_urn, clicks.offer_name, sku.div_desc, sku.grp_desc, sku.class_desc, sku.sbclass_desc;
+group by clicks.contact_urn, clicks.offer_name, sku.div_desc, sku.grp_desc, sku.class_desc, sku.sbclass_desc, ecom.promoid;
+
+select * from ua_ecom_order_dtl where rownum <44
+
 
 --store orders
 

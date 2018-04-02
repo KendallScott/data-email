@@ -1,3 +1,7 @@
+drop table customer_clicks;
+drop table email_product_groups_ecom;
+drop table email_product_groups;
+
 create table customer_clicks as 
 select
 distinct
@@ -13,11 +17,10 @@ inner join ua_pos_tm_day tm on to_date(click.trans_dt)= tm.day_dt
 inner join ua_email_ref rf on click.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
 inner join ua_email_resolution res on res.contact_urn = click.contact_urn
 inner join ua_campaign camp on camp.campaign_id = res.campaign_id
-where click.wk_idnt = 201807 and offer.channel= 'EMAIL'
+where click.wk_idnt = 201808 and offer.channel= 'EMAIL'
 group by camp.campaign_name, offer.offer_name, rf.indiv_id,  click.contact_urn;
 
 --store products
-drop table email_product_groups_ecom;
 Create table email_product_groups_ecom as
 select
 distinct
@@ -72,7 +75,7 @@ when (UPPER(clicks.offer_name)) like '%JAR%'                                    
 when (UPPER(clicks.offer_name)) like '%METAL STAMPING%'                                                      and sku.sbclass_desc like '%METAL STAMPING%'   then  sum(ecom.dmnd_net_ttl_amt)
 when (UPPER(clicks.offer_name)) like '%CHARGER%'                                                             and sku.class_desc like '%CHARGER%'            then  sum(ecom.dmnd_net_ttl_amt)
 when (UPPER(clicks.offer_name)) like '%SLIME%'                                                               and sku.class_desc like '%CRAFT ADHESIVE%'     then  sum(ecom.dmnd_net_ttl_amt)
-when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') and ecom.promoid is not null then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') and ecom.promoid is not null then sum(ecom.dmnd_net_ttl_amt)
 else null end)                                                as division_sales,
 (case 
 when ((UPPER(clicks.offer_name)) like '%CUSTOM FRAM%' or (UPPER(clicks.offer_name)) like '%CUSTOM-FRAM%' or (UPPER(clicks.offer_name)) like '%SCOTT BROTHERS%') then 'custom framing'
@@ -119,21 +122,17 @@ when (UPPER(clicks.offer_name)) like '%JAR%'                                    
 when (UPPER(clicks.offer_name)) like '%METAL STAMPING%'                                                                                                     then 'metal stamping'
 when (UPPER(clicks.offer_name)) like '%CHARGER%'                                                                                                            then 'charger'
 when (UPPER(clicks.offer_name)) like '%SLIME%'                                                                                                              then 'slime'
-when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%'or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') then 'coupon'
+when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%'or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') then 'coupon'
 else null end)                                                                                                                                             as division_group
 from  customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click = tm.day_idnt
 inner join ua_ecom_order_dtl ecom on clicks.indiv_id = ecom.indiv_id and to_date(ecom.dmnd_dt) = tm.day_dt
 left join ua_pos_prod_sku sku on ecom.sku_name = sku.sku_idnt
-where tm.wk_idnt between 201807 and 201807 
+where tm.wk_idnt between 201808 and 201808 
 and ecom.line_item_type = 'DEMAND'
 group by clicks.contact_urn, clicks.offer_name, sku.div_desc, sku.grp_desc, sku.class_desc, sku.sbclass_desc, ecom.promoid;
 
-select * from ua_ecom_order_dtl where rownum <44
-
-
 --store orders
-
 --store orders
 Create table email_product_groups as
 select
@@ -189,7 +188,7 @@ when (UPPER(click.offer_name)) like '%JAR%'                                     
 when (UPPER(click.offer_name)) like '%METAL STAMPING%'                                                      and sku.sbclass_desc like '%METAL STAMPING%'   then sum(dtl.extended_sls_amt)
 when (UPPER(click.offer_name)) like '%CHARGER%'                                                             and sku.class_desc like '%CHARGER%'            then sum(dtl.extended_sls_amt)
 when (UPPER(click.offer_name)) like '%SLIME%'                                                               and sku.class_desc like '%CRAFT ADHESIVE%'     then sum(dtl.extended_sls_amt)
-when ((UPPER(click.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(click.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(click.offer_name)) like '%COUPON%'or (UPPER(click.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(click.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') then sum(cpn.extended_sls_amt)
+when ((UPPER(click.offer_name)) like '%OFF ANY ONE REGULAR PRICE%'  or (UPPER(click.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%' or (UPPER(click.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(click.offer_name)) like '%COUPON%'or (UPPER(click.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(click.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') then sum(cpn.extended_sls_amt)
 else null end)                                                as division_sales,
 (case 
 when ((UPPER(click.offer_name)) like '%CUSTOM FRAM%' or (UPPER(click.offer_name)) like '%CUSTOM-FRAM%' or (UPPER(click.offer_name)) like '%SCOTT BROTHERS%') then 'custom framing'
@@ -236,7 +235,7 @@ when (UPPER(click.offer_name)) like '%JAR%'                                     
 when (UPPER(click.offer_name)) like '%METAL STAMPING%'                                                                                                     then 'metal stamping'
 when (UPPER(click.offer_name)) like '%CHARGER%'                                                                                                            then 'charger'
 when (UPPER(click.offer_name)) like '%SLIME%'                                                                                                              then 'slime'
-when ((UPPER(click.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(click.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(click.offer_name)) like '%COUPON%' or (UPPER(click.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(click.offer_name)) like '%OFF ENTIRE REGULAR PRICE%' or (UPPER(click.offer_name)) like '%AORPI%') then 'coupon sales'
+when ((UPPER(click.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(click.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%'  or (UPPER(click.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(click.offer_name)) like '%COUPON%' or (UPPER(click.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(click.offer_name)) like '%OFF ENTIRE REGULAR PRICE%' or (UPPER(click.offer_name)) like '%AORPI%') then 'coupon sales'
 else null end)                                                                                                                                             as division_group
 from  customer_clicks click
 inner join ua_pos_tm_day tm on click.last_click = tm.day_idnt
@@ -244,20 +243,22 @@ inner join ua_pos_trans_dtl dtl on click.indiv_id = dtl.indiv_id and dtl.day_idn
 inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key
 inner join ua_store str on dtl.loc_key = str.loc_key and str.distt_idnt != '999'
 left join ua_pos_coupon_dtl cpn on dtl.pos_trans_key = cpn.pos_trans_key and dtl.sku_key = cpn.sku_key and dtl.TRANS_DETAIL_SQNC_NBR = cpn.COUPON_SQNC_NBR  
-where tm.wk_idnt between 201807 and 201807 
+where tm.wk_idnt between 201808 and 201808 
 group by  click.contact_urn, click.offer_name, sku.div_desc, sku.grp_desc, sku.class_desc, sku.sbclass_desc;
 
 --product sales results 
+select * from customer_clicks where rownum <55
+
 --ecom
 select 
 (substr(clicks.offer_name, 1, 30))                                                                                                                         as offer_name,
-count(distinct clicks.contact_urn)                                                                                                                         as clicks,
+count(clicks.contact_urn)                                                                                                                                  as clicks,
 product_ecom.division_group                                                                                                                                as ecom_product_type,
 sum(product_ecom.division_sales)                                                                                                                           as ecom_product_sales
 from customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click= tm.day_idnt
 left join  email_product_groups_ecom product_ecom on  clicks.contact_urn_offer_name= product_ecom.contact_urn_offer_name
-where tm.wk_idnt between 201807 and 201807
+where tm.wk_idnt between 201808 and 201808
 and product_ecom.division_group is not null
 group by clicks.offer_name, product_ecom.division_group
 order by clicks desc;
@@ -265,13 +266,13 @@ order by clicks desc;
 --store
 select 
 (substr(clicks.offer_name, 1, 30))                                                                                                                         as offer_name,
-count(distinct clicks.contact_urn)                                                                                                                         as clicks,
+count(clicks.contact_urn)                                                                                                                                  as clicks,
 product.division_group                                                                                                                                     as store_product_type,
 sum(product.division_sales)                                                                                                                                as store_product_sales
 from customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click= tm.day_idnt
 left join  email_product_groups product on clicks.contact_urn_offer_name= product.contact_urn_offer_name
-where tm.wk_idnt between 201807 and 201807
+where tm.wk_idnt between 201808 and 201808
 group by clicks.offer_name, product.division_group
 order by clicks desc;
 
@@ -280,21 +281,21 @@ order by clicks desc;
 --ecom
 select 
 (substr(clicks.offer_name, 1, 30))                                                                                                                          as offer_name,
-count(distinct clicks.contact_urn)                                                                                                                          as clicks,
+count(clicks.contact_urn)                                                                                                                                   as clicks,
 count(distinct ecom.indiv_id)                                                                                                                               as ecom_customers,
 count(distinct ecom.order_id)                                                                                                                               as ecom_trans,
 sum(ecom.dmnd_net_ttl_amt)                                                                                                                                  as ecom_sales
 from customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click= tm.day_idnt
 left join ua_ecom_order_dtl ecom on ecom.indiv_id = clicks.indiv_id and (to_date(ecom.dmnd_dt) = tm.day_dt)  and ecom.line_item_type = 'DEMAND'
-where tm.wk_idnt between 201807 and 201807
+where tm.wk_idnt between 201808 and 201808
 group by clicks.offer_name
 order by clicks desc;
 
 --store
 select 
 (substr(clicks.offer_name, 1, 30))                                                                                                                          as offer_name,
-count(distinct clicks.contact_urn)                                                                                                                          as clicks,
+count(clicks.contact_urn)                                                                                                                                   as clicks,
 count(distinct dtl.indiv_id)                                                                                                                                as store_customers,
 count(distinct dtl.pos_trans_key)                                                                                                                           as store_trans,
 sum(dtl.extended_sls_amt)                                                                                                                                   as store_sales
@@ -302,6 +303,6 @@ from customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click= tm.day_idnt
 left join ua_pos_trans_dtl dtl on dtl.indiv_id = clicks.indiv_id and dtl.day_idnt = tm.day_idnt and dtl.trans_typ_key in(19,22,33)
 left join ua_store str on dtl.loc_key = str.loc_key and str.distt_idnt != '999'
-where tm.wk_idnt between 201807 and 201807
+where tm.wk_idnt between 201808 and 201808
 group by clicks.offer_name
 order by clicks desc;

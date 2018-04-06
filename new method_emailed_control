@@ -1,0 +1,36 @@
+--create table of all email ids, and us or canada from contact history
+create table weekly_emailed  as
+select distinct
+   hist.wk_idnt,
+   rf.indiv_id,
+   rf.ca_valid_email_flg as canada,
+   min(opened_dt) as first_open
+from         ua_email_contact_history hist
+  inner join ua_campaign              camp  on hist.campaign_src_cd = camp.campaign_src_cd  and hist.campaign_id = camp.campaign_id
+  inner join ua_email_ref             rf    on hist.email_id        = rf.email_id           and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
+  inner join ua_email_resolution      res   on hist.contact_urn     = res.contact_urn
+where to_date(camp.start_dt) between &start_date and &end_date
+group by hist.wk_idnt, rf.indiv_id, rf.ca_valid_email_flg
+order by hist.wk_idnt;
+
+create table weekly_control_us as
+select distinct 
+rf.indiv_id,
+tm.wk_idnt+1 as wk_idnt,
+rf.ca_valid_email_flg as canada,
+from  unica.tmp_us_weekly_control_hh ctrl
+inner join  ua_email_ref rf on ctrl.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
+inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
+  where tm.wk_idnt+1 between 201701 and 201808
+  and rf.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed);
+
+create table weekly_control_can as
+select distinct 
+rf.indiv_id,
+tm.wk_idnt+1 as wk_idnt,
+rf.ca_valid_email_flg as canada,
+from  unica.tmp_us_weekly_control_hh ctrl
+inner join  ua_email_ref rf on ctrl.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
+inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
+  where tm.wk_idnt+1 between 201701 and 201808
+  and rf.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed);

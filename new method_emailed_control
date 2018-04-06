@@ -1,3 +1,14 @@
+-----Start ROCK code-----
+DEFINE start_day_idnt = '2017001';
+DEFINE end_day_idnt = '2018056';
+DEFINE start_wk_idnt = '201701';
+DEFINE end_wk_idnt = '201808';
+DEFINE start_dt = '29jan2017';
+DEFINE end_dt = '31mar2018';
+DEFINE start_date = ''29-JAN-17'';
+DEFINE end_date = ''31-MAR-18'';
+DEFINE week = 'weekly';
+set worksheetname incremental_email_&week;
 --create table of all email ids, and us or canada from contact history
 create table weekly_emailed  as
 select distinct

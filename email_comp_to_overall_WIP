@@ -1,0 +1,51 @@
+set worksheetname email_comparison_to_overall;
+create table promo_emailed as
+select 
+distinct
+rf.indiv_id,
+camp.campaign_name              as campaign_name,
+min(opened_dt)                          as first_open
+from ua_email_resolution res 
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+where res.wk_idnt = 201809
+group by camp.campaign_name;
+
+SELECT 
+         dc.decile,
+         avg(dc.open_rate_12mth)                                                   AS avg_open_rate,
+         count(distinct dc.email_id)                                               AS email_addresses,
+         count(distinct dc.indiv_id)                                               AS customers,
+         COUNT (distinct res.contact_urn)                                          AS sent,
+         COUNT (res.opened_dt)                                                     AS opens,         
+         COUNT (res.max_click_dt)                                                  AS clicks,
+        round(COUNT(res.opened_dt)/COUNT(distinct res.contact_urn), 4)             AS open_rate,
+        round(count(res.max_click_dt)/COUNT(distinct res.contact_urn), 4)          as click_rate
+    FROM   ua_email_resolution res
+   inner join open_rate_quartile dc on res.email_id = dc.email_id
+   inner join promo_emailed bps on bps.indiv_id = dc.indiv_id
+   WHERE res.wk_idnt BETWEEN 201801 AND 201808
+   and res.campaign_id! = '5894020180328'
+group by  dc.decile
+order by  dc.decile;
+
+select * from ua_email_resolution where rownum <55;
+
+select
+camp.campaign_id 
+from ua_email_resolution res
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+where res.wk_idnt between 201808 and 201808
+and camp.campaign_name like '%20180328_12PM_BOPIS_LAUNCH_SERIALIZED_US%';
+
+create table open_rate_quartile as
+select
+rf.indiv_id,
+agg.email_id,
+agg.open_rate_12mth,
+NTILE(4) OVER(ORDER BY agg.open_rate_12mth DESC) AS decile
+from ua_email_agg agg
+inner join ua_email_ref rf on agg.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+inner join ua_email em on agg.email_id = em.email_id
+inner join ua_pos_tm_day tm on to_date(em.fst_activity_dt)= tm.day_dt
+where tm.wk_idnt <= 201702;

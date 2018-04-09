@@ -1,21 +1,22 @@
 -----Start ROCK code-----
 DEFINE start_day_idnt = '2017001';
-DEFINE end_day_idnt = '2018056';
+DEFINE end_day_idnt = '2018063';
 DEFINE start_wk_idnt = '201701';
-DEFINE end_wk_idnt = '201808';
+DEFINE end_wk_idnt = '201809';
 DEFINE start_dt = '29jan2017';
-DEFINE end_dt = '31mar2018';
+DEFINE end_dt = '07apr2018';
 DEFINE start_date = ''29-JAN-17'';
-DEFINE end_date = ''31-MAR-18'';
+DEFINE end_date = ''07-APR-18'';
 DEFINE week = 'weekly';
 set worksheetname incremental_email_&week;
+
 --create table of all email ids, and us or canada from contact history
 create table weekly_emailed  as
 select distinct
-   hist.wk_idnt,
-   rf.indiv_id,
-   rf.ca_valid_email_flg as canada,
-   min(opened_dt) as first_open
+   hist.wk_idnt                                   as wk_idnt,
+   rf.indiv_id                                       as indiv_id,
+   rf.ca_valid_email_flg                 as canada,
+   min(opened_dt)                          as first_open
 from         ua_email_contact_history hist
   inner join ua_campaign              camp  on hist.campaign_src_cd = camp.campaign_src_cd  and hist.campaign_id = camp.campaign_id
   inner join ua_email_ref             rf    on hist.email_id        = rf.email_id           and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
@@ -26,22 +27,22 @@ order by hist.wk_idnt;
 
 create table weekly_control_us as
 select distinct 
-rf.indiv_id,
-tm.wk_idnt+1 as wk_idnt,
-rf.ca_valid_email_flg as canada,
+rf.indiv_id                                        as indiv_id,
+tm.wk_idnt+1                                 as wk_idnt,
+rf.ca_valid_email_flg                   as canada,
 from  unica.tmp_us_weekly_control_hh ctrl
 inner join  ua_email_ref rf on ctrl.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
 inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
-  where tm.wk_idnt+1 between 201701 and 201808
+  where tm.wk_idnt+1 between &start_wk_idnt and &end_wk_idnt
   and rf.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed);
 
 create table weekly_control_can as
 select distinct 
-rf.indiv_id,
-tm.wk_idnt+1 as wk_idnt,
-rf.ca_valid_email_flg as canada,
+rf.indiv_id                                         as indiv_id,
+tm.wk_idnt+1                                  as wk_idnt,
+rf.ca_valid_email_flg                    as canada,
 from  unica.tmp_us_weekly_control_hh ctrl
 inner join  ua_email_ref rf on ctrl.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
 inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
-  where tm.wk_idnt+1 between 201701 and 201808
+  where tm.wk_idnt+1 between &start_wk_idnt and &end_wk_idnt
   and rf.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed);

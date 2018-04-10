@@ -1,0 +1,417 @@
+set worksheetname incremental_email;
+-----Start ROCK code-----
+--feb week 1
+DEFINE start_day_idnt = '2018001';
+DEFINE end_day_idnt = '2018007';
+DEFINE wk_idnt = '201801';
+DEFINE start_dt = '04feb2018';
+DEFINE end_dt = '10feb2018';
+DEFINE start_date = ''04-FEB-18'';
+DEFINE end_date = ''10-FEB-18'';
+DEFINE rundate_US = ''30-JAN-18 09.48.33.000000000 AM'';
+DEFINE rundate_CAN = ''30-JAN-18 09.18.10.000000000 AM'';
+DEFINE week = '0204_0210';
+
+--feb week 2
+DEFINE start_day_idnt = '2018008';
+DEFINE end_day_idnt = '2018014';
+DEFINE wk_idnt = '201802';
+DEFINE start_dt = '11feb2018';
+DEFINE end_dt = '17feb2018';
+DEFINE start_date = ''11-FEB-18'';
+DEFINE end_date = ''17-FEB-18'';
+DEFINE rundate_US = ''06-FEB-18 08.45.39.000000000 AM'';
+DEFINE rundate_CAN = ''06-FEB-18 08.11.32.000000000 AM'';
+DEFINE week = '0211_0217';
+
+-- week 53
+DEFINE week = '0128_0203';
+DEFINE wk_idnt = '201753';
+
+--week 52
+DEFINE wk_idnt = '201752';
+DEFINE start_date = ''21-JAN-18'';
+DEFINE end_date = ''27-JAN-18'';
+DEFINE rundate_US = ''16-JAN-18 08.09.51.000000000 AM'';
+DEFINE rundate_CAN = ''16-JAN-18 08.03.41.000000000 AM'';
+DEFINE week = '0121_0127';
+
+--week 51
+DEFINE wk_idnt = '201751';
+DEFINE start_date = ''14-JAN-18'';
+DEFINE end_date = ''20-JAN-18'';
+DEFINE rundate_US = ''09-JAN-18 08.09.50.000000000 AM'';
+DEFINE rundate_CAN = ''09-JAN-18 08.03.47.000000000 AM'';
+DEFINE week = '0114_0120';
+
+--week 50
+DEFINE wk_idnt = '201750';
+DEFINE start_date = ''07-JAN-18'';
+DEFINE end_date = ''13-JAN-18'';
+DEFINE rundate_US = ''02-JAN-18 08.10.58.000000000 AM'';
+DEFINE rundate_CAN = ''02-JAN-18 08.03.33.000000000 AM'';
+DEFINE week = '0107_0113';
+
+--week 49
+DEFINE wk_idnt = '201749';
+DEFINE start_date = ''31-DEC-17'';
+DEFINE end_date = ''06-JAN-18'';
+DEFINE rundate_US = ''26-DEC-17 08.14.17.000000000 AM'';
+DEFINE rundate_CAN = ''26-DEC-17 08.06.18.000000000 AM'';
+DEFINE week = '1231_0106';
+
+--week 48
+DEFINE wk_idnt = '201748';
+DEFINE start_date = ''24-DEC-17'';
+DEFINE end_date = ''30-DEC-17'';
+DEFINE rundate_US = ''19-DEC-17 08.11.58.000000000 AM'';
+DEFINE rundate_CAN = ''19-DEC-17 08.04.14.000000000 AM'';
+DEFINE week = '1224_1230';
+
+--week 3
+DEFINE wk_idnt = '201703';
+DEFINE start_date = ''12-FEB-17'';
+DEFINE end_date = ''18-FEB-17'';
+DEFINE rundate_US = ''06-FEB-17 09.23.33.000000000 AM'';
+DEFINE rundate_CAN = ''06-FEB-17 08.04.25.000000000 AM'';
+DEFINE week = '0212_0218';
+
+--week 4
+DEFINE wk_idnt = '201704';
+DEFINE start_date = ''19-FEB-17'';
+DEFINE end_date = ''25-FEB-17'';
+DEFINE rundate_US = ''13-FEB-17 09.40.07.000000000 AM'';
+DEFINE rundate_CAN = ''13-FEB-17 08.04.53.000000000 AM'';
+DEFINE week = '0219_0225';
+
+--week 5
+DEFINE wk_idnt = '201705';
+DEFINE start_date = ''26-FEB-17'';
+DEFINE end_date = ''04-MAR-17'';
+DEFINE rundate_US = ''20-FEB-17 09.15.12.000000000 AM'';
+DEFINE rundate_CAN = ''20-FEB-17 08.05.17.000000000 AM'';
+DEFINE week = '0226_0304';
+
+--week 6
+DEFINE wk_idnt = '201706';
+DEFINE start_date = ''05-MAR-17'';
+DEFINE end_date = ''11-MAR-17'';
+DEFINE rundate_US = ''27-FEB-17 08.47.55.000000000 AM'';
+DEFINE rundate_CAN = ''27-FEB-17 08.04.33.000000000 AM'';
+DEFINE week = '0305_0311';
+
+--week 7
+DEFINE wk_idnt = '201707';
+DEFINE start_date = ''12-MAR-17'';
+DEFINE end_date = ''18-MAR-17'';
+DEFINE rundate_US = ''06-MAR-17 09.30.23.000000000 AM'';
+DEFINE rundate_CAN = ''06-MAR-17 08.04.58.000000000 AM'';
+DEFINE week = '0312_0318';
+
+--week 8
+DEFINE wk_idnt = '201708';
+DEFINE start_date = ''19-MAR-17'';
+DEFINE end_date = ''25-MAR-17'';
+DEFINE rundate_US = ''13-MAR-17 08.27.31.000000000 AM'';
+DEFINE rundate_CAN = ''13-MAR-17 08.04.30.000000000 AM'';
+DEFINE week = '0319_0325';
+
+--week 9
+DEFINE wk_idnt = '201709';
+DEFINE start_date = ''26-MAR-17'';
+DEFINE end_date = ''01-APR-17'';
+DEFINE rundate_US = ''20-MAR-17 08.18.12.000000000 AM'';
+DEFINE rundate_CAN = ''20-MAR-17 08.03.35.000000000 AM'';
+DEFINE week = '0326_0401';
+
+--week 10
+DEFINE wk_idnt = '201710';
+DEFINE start_date = ''02-APR-17'';
+DEFINE end_date = ''08-APR-17'';
+DEFINE rundate_US = ''27-MAR-17 08.17.36.000000000 AM'';
+DEFINE rundate_CAN = ''27-MAR-17 08.02.43.000000000 AM'';
+DEFINE week = '0402_0408';
+
+--week 11
+DEFINE wk_idnt = '201711';
+DEFINE start_date = ''09-APR-17'';
+DEFINE end_date = ''15-APR-17'';
+DEFINE rundate_US = ''03-APR-17 08.18.02.000000000 AM'';
+DEFINE rundate_CAN = ''03-APR-17 08.02.55.000000000 AM'';
+DEFINE week = '0409_0415';
+
+--us control
+select 
+distinct(rundate)
+from unica.tmp_us_weekly_control_hh
+order by rundate desc
+30-JAN-18 09.48.33.000000000 AM
+
+--can control 
+select 
+distinct(rundate)
+from unica.tmp_can_weekly_control_hh
+order by rundate desc
+23-JAN-18 08.06.47.000000000 AM
+
+select 
+count(distinct hist.contact_urn),
+rf.ca_valid_email_flg
+from ua_email_contact_history hist
+  Inner Join Ua_Email_Ref             Rf On Hist.Email_Id        = Rf.Email_Id
+where hist.wk_idnt= &wk_idnt
+group by rf.ca_valid_email_flg;
+
+
+Drop Table Email_Id_&week;
+Drop Table Emailed_Hh_Us_&week;
+Drop Table Emailed_Hh_Ca_&week;
+Drop Table Control_Hh_Us_&week;
+drop table true_emailed_us_&week;
+drop table overlap_hh_us_&week;
+Drop Table Overlap_Hh_Ca_&week;
+Drop Table True_Control_Us_&week;
+Drop Table True_Control_Ca_&week;
+drop table true_emailed_ca_&week;
+
+--create table of all email ids, and us or canada from contact history
+create table email_id_&week  as
+select distinct
+   rf.email_id,
+   rf.ca_valid_email_flg as canada
+from         ua_email_contact_history hist
+  inner join ua_campaign              camp on hist.campaign_src_cd = camp.campaign_src_cd and hist.campaign_id = camp.campaign_id
+  inner join ua_email_ref             rf on hist.email_id        = rf.email_id
+where to_date(camp.start_dt) between &start_date and &end_date;
+
+--emailed hh us
+create table emailed_hh_us_&week as
+select distinct rf.hh_id
+from         ua_email_ref       rf
+  inner join email_id_&week mail on rf.email_id = mail.email_id
+Where Mail.Canada = 'N';
+
+--emailed hh can
+create table emailed_hh_ca_&week as
+select distinct rf.hh_id
+from         ua_email_ref       rf
+  inner join email_id_&week mail on rf.email_id = mail.email_id
+Where Mail.Canada = 'Y';
+
+--control tables
+create table control_hh_us_&week as
+select distinct rf.hh_id
+from  unica.tmp_us_weekly_control_hh ctrl
+inner join  ua_email_ref rf on ctrl.email_id = rf.email_id
+  where ctrl.wk_idnt = &wk_idnt;
+
+create table control_hh_ca_&week as
+select distinct rf.hh_id
+from  unica.tmp_can_weekly_control_hh ctrl
+inner join  ua_email_ref rf on ctrl.email_id = rf.email_id
+where ctrl.wk_idnt = &wk_idnt;
+
+--overlap
+create table overlap_hh_us_&week  as
+select distinct mail.hh_id
+from         emailed_hh_us_&week mail
+  inner join control_hh_us_&week con on mail.hh_id = con.hh_id;
+
+create table overlap_hh_ca_&week as
+select distinct mail.hh_id
+from         emailed_hh_ca_&week mail
+  inner join control_hh_ca_&week con on mail.hh_id = con.hh_id;
+
+--true emailed
+create table true_emailed_us_&week as
+select distinct hh_id
+from emailed_hh_us_&week
+where hh_id not in(select hh_id from overlap_hh_us_&week);
+
+create table true_control_us_&week as
+select distinct hh_id
+from control_hh_us_&week
+where hh_id not in(select hh_id from overlap_hh_us_&week);
+
+create table true_emailed_ca_&week as
+select distinct hh_id
+from emailed_hh_ca_&week
+where hh_id not in(select hh_id from overlap_hh_ca_&week);
+
+create table true_control_ca_&week as
+select distinct hh_id
+from control_hh_ca_&week
+where hh_id not in(select hh_id from overlap_hh_ca_&week);
+
+select
+   dtl.day_idnt                                                 as day_idnt,
+   count(distinct dtl.pos_trans_key)                            as transactions,
+   dtl.day_idnt                                                 as day_idnt,
+   sum(dtl.extended_sls_amt)                                    as sales,
+   count(distinct con.hh_id)                                    as households,
+   sum(dtl.grs_mrgn_amt)                                        as gm
+from true_emailed_us_&week  con
+  left join ua_individual    ind        on con.hh_id    = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.trans_typ_key in(19,22,33)--and dtl.day_idnt between &start_day_idnt and &end_day_idnt  
+group by dtl.day_idnt
+order by  dtl.day_idnt
+
+--control us
+select
+  count(distinct con.hh_id)             as households
+  ,count(distinct dtl.pos_trans_key)    as transactions
+  ,sum(dtl.extended_sls_amt)            as sales
+  ,sum(dtl.grs_mrgn_amt)                as gm
+from true_control_us_&week  con
+  left join ua_individual    ind        on con.hh_id    = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.trans_typ_key in(19,22,33);
+
+--control can
+select
+  count(distinct con.hh_id)             as households
+  ,count(distinct dtl.pos_trans_key)    as transactions
+  ,sum(dtl.extended_sls_amt)            as sales
+  ,sum(dtl.grs_mrgn_amt)                as gm
+from true_control_ca_&week  con
+  left join ua_individual    ind        on con.hh_id    = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.trans_typ_key in(19,22,33);
+
+--emailed us
+select
+   count(distinct con.hh_id)                                    as households,
+   count(distinct dtl.pos_trans_key)                            as transactions,
+   sum(dtl.extended_sls_amt)                                    as sales,
+   sum(dtl.grs_mrgn_amt)                                        as gm
+from true_emailed_us_&week  con
+  left join ua_individual    ind        on con.hh_id    = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.trans_typ_key in(19,22,33)
+--  left join ua_store str                on dtl.loc_key = str.loc_key and str.distt_idnt!='999'
+
+select
+   dtl.day_idnt                                                 as day_idnt,
+   count(distinct dtl.pos_trans_key)                            as transactions,
+   sum(dtl.extended_sls_amt)                                    as sales,
+   count(distinct con.hh_id)                                    as households,
+   sum(dtl.grs_mrgn_amt)                                        as gm
+from true_emailed_us_&week  con
+  left join ua_individual    ind        on con.hh_id    = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.trans_typ_key in(19,22,33)--and dtl.day_idnt between &start_day_idnt and &end_day_idnt  
+group by dtl.day_idnt
+order by  dtl.day_idnt
+
+--emailed can
+select
+  count(distinct con.hh_id)             as households
+  ,count(distinct dtl.pos_trans_key)    as transactions
+  ,sum(dtl.extended_sls_amt)            as sales
+  ,sum(dtl.grs_mrgn_amt)                as gm
+from emailed_hh_ca_&week  con
+  left join ua_individual    ind        on con.hh_id    = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.day_idnt between &start_day_idnt and &end_day_idnt and dtl.trans_typ_key in(19,22,33);
+
+--emailed us
+select
+   count(distinct con.hh_id)            as households
+  ,count(distinct dtl.pos_trans_key)    as transactions
+  ,sum(dtl.extended_sls_amt)            as sales
+  ,sum(dtl.grs_mrgn_amt)                as gm
+from true_emailed_us_&week  con
+  left join ua_individual    ind        on con.hh_id    = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.day_idnt &start_day_idnt and &end_day_idnt  and dtl.trans_typ_key in(19,22,33);
+
+--emailed us by department
+select
+   sku.dept_desc
+  ,count(distinct con.hh_id)            as households
+  ,count(distinct dtl.pos_trans_key)    as transactions
+  ,sum(dtl.extended_sls_amt)            as sales
+  ,sum(dtl.grs_mrgn_amt)                as gm
+from true_emailed_us_&week  con
+  left join ua_individual ind           on con.hh_id = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.day_idnt between &start_day_idnt and &end_day_idnt  and dtl.trans_typ_key in(19,22,33)
+  left join ua_pos_prod_sku sku         on dtl.sku_key = sku.sku_key
+  group by sku.dept_desc
+  order by sales desc;
+
+select
+   sku.dept_desc
+  ,count(distinct con.hh_id)            as households
+  ,count(distinct dtl.pos_trans_key)    as transactions
+  ,sum(dtl.extended_sls_amt)            as sales
+  ,sum(dtl.grs_mrgn_amt)                as gm
+from true_emailed_ca_&week  con
+  left join ua_individual ind           on con.hh_id = ind.hh_id
+  left join ua_pos_trans_dtl dtl        on ind.indiv_id = dtl.indiv_id and dtl.wk_idnt = &wk_idnt and dtl.day_idnt between &start_day_idnt and &end_day_idnt  and dtl.trans_typ_key in(19,22,33)
+  left join ua_pos_prod_sku sku         on dtl.sku_key = sku.sku_key
+  group by sku.dept_desc
+  order by sales desc;
+  
+
+SELECT 
+         res.wk_idnt,
+         camp.campaign_name,
+         (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1)))   as campaign_name,
+         COUNT (distinct res.contact_urn)                                           AS sent,
+         COUNT (res.opened_dt)                                                      AS opens,         
+         COUNT (res.max_click_dt)                                                   AS clicks, 
+         count (opted_out_dt)                                                       as opt_outs
+    FROM ua_email_resolution res
+    inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+   WHERE    res.wk_idnt BETWEEN &wk_idnt AND &wk_idnt
+GROUP BY res.wk_idnt, camp.campaign_name
+Order By Res.Wk_Idnt, Camp.Campaign_Name
+
+--by cell
+SELECT 
+         res.wk_idnt,
+         camp.campaign_name,
+         cell.cell_name,
+         (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2017', -1)))   as campaign_name,
+         COUNT (distinct res.contact_urn)                                           AS sent,
+         COUNT (res.opened_dt)                                                      AS opens,         
+         COUNT (res.max_click_dt)                                                   AS clicks       
+    FROM ua_email_resolution res
+    inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+    inner join ua_campaign_cell cell on cell.campaign_id = camp.campaign_id
+   WHERE res.wk_idnt BETWEEN &week AND &week
+GROUP BY res.wk_idnt, camp.campaign_name, cell.cell_name
+Order By Res.Wk_Idnt, Camp.Campaign_Name
+
+--overall opens, clicks, sends
+SELECT 
+         res.wk_idnt,
+         COUNT (distinct res.contact_urn)                                          AS sent,
+         COUNT (res.opened_dt)                                                     AS opens,         
+         COUNT (res.max_click_dt)                                                  AS clicks,
+         rf.ca_valid_email_flg                                                     as canada
+    FROM ua_email_resolution res
+    inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+    inner join ua_campaign_cell cell on cell.campaign_id = camp.campaign_id
+    inner join ua_email_ref rf on res.email_id = rf.email_id
+   WHERE res.wk_idnt BETWEEN 201628 AND 201630
+GROUP BY res.wk_idnt,  rf.ca_valid_email_flg
+Order By Res.Wk_Idnt, rf.ca_valid_email_flg
+
+select 
+count(distinct contact_urn) as clicks,
+offer.offer_name
+from Unica.Ua_Email_Click  click
+inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
+where click.wk_idnt = 201750
+group by offer.offer_name
+order by clicks desc
+
+
+select 
+count(distinct click.contact_urn) as clicks,
+offer.offer_name
+from Unica.Ua_Email_Click  click
+inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
+inner join ua_email_resolution res on res.contact_urn = click.contact_urn
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+where click.wk_idnt = 201750
+and camp.campaign_name like '20180112_EOW%'
+group by offer.offer_name
+order by clicks desc
+
+

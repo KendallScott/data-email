@@ -1,0 +1,68 @@
+create table open_rate_quartile as
+select
+rf.indiv_id,
+agg.email_id,
+agg.open_rate_12mth,
+NTILE(4) OVER(ORDER BY agg.open_rate_12mth DESC) AS decile
+from ua_email_agg agg
+inner join ua_email_ref rf on agg.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+inner join ua_email em on agg.email_id = em.email_id
+inner join ua_pos_tm_day tm on to_date(em.fst_activity_dt)= tm.day_dt
+where tm.wk_idnt <= 201702;
+
+create table bopis_emailed as
+select 
+distinct
+rf.indiv_id
+from ua_email_resolution res 
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+where res.wk_idnt = 201808
+and camp.campaign_name like '20180328_12PM_BOPIS_LAUNCH_SERIALIZED_US%';
+
+SELECT 
+         dc.decile,
+         avg(dc.open_rate_12mth)                                                   AS avg_open_rate,
+         count(distinct dc.email_id)                                               AS email_addresses,
+         count(distinct dc.indiv_id)                                               AS customers,
+         COUNT (distinct res.contact_urn)                                          AS sent,
+         COUNT (res.opened_dt)                                                     AS opens,         
+         COUNT (res.max_click_dt)                                                  AS clicks,
+        round(COUNT(res.opened_dt)/COUNT(distinct res.contact_urn), 4)             AS open_rate
+    FROM   ua_email_resolution res
+   inner join open_rate_quartile dc on res.email_id = dc.email_id
+   WHERE res.wk_idnt BETWEEN 201702 AND 201808
+group by res.wk_idnt, dc.decile
+order by res.wk_idnt, dc.decile;
+
+select * from ua_email_agg where rownum <55
+drop table bopis_emailed;
+create table bopis_emailed as
+select 
+distinct
+rf.email_id,
+rf.indiv_id
+from ua_email_resolution res 
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+where res.wk_idnt = 201808
+and camp.campaign_name like '20180328_12PM_BOPIS_LAUNCH_SERIALIZED_US%';
+
+SELECT 
+         dc.decile,
+         avg(dc.open_rate_12mth)                                                   AS avg_open_rate,
+         count(distinct dc.email_id)                                               AS email_addresses,
+         count(distinct dc.indiv_id)                                               AS customers,
+         COUNT (distinct res.contact_urn)                                          AS sent,
+         COUNT (res.opened_dt)                                                     AS opens,         
+         COUNT (res.max_click_dt)                                                  AS clicks,
+        round(COUNT(res.opened_dt)/COUNT(distinct res.contact_urn), 4)             AS open_rate,
+        round(count(res.max_click_dt)/COUNT(distinct res.contact_urn), 4)          as click_rate
+    FROM   ua_email_resolution res
+   inner join open_rate_quartile dc on res.email_id = dc.email_id
+   inner join bopis_emailed bps on bps.indiv_id = dc.indiv_id
+   WHERE res.wk_idnt BETWEEN 201801 AND 201808
+group by res.wk_idnt, dc.decile
+order by res.wk_idnt, dc.decile;
+
+

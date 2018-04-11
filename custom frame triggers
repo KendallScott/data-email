@@ -27,6 +27,16 @@ and res.wk_idnt between 201801 and 201809
 and camp.campaign_name  not like '%OrderReady%'
 group by rf.indiv_id, camp.campaign_name, res.campaign_id, rf.ca_valid_email_flg ;
 
+select
+campaigns, 
+count(distinct indiv_id)
+from(
+select 
+indiv_id, 
+count(distinct campaign_name) as campaigns
+from cf_triggers)
+
+
 select wk_idnt,
 count(distinct indiv_id)
 from emailed_opens
@@ -61,17 +71,21 @@ dtl.indiv_id,
  
  
  select 
-count(cfs.indiv_id) as customer_count,
  count(distinct cfs.indiv_id) as customers, 
  sum(cfs.store_trans) as transactions, 
  sum(cfs.store_sales) as sales
  from custom_frame_sales cfs
-where (cfs. indiv_id||cfs.day_idnt in (select indiv_id||first_open  from cf_triggers)
-or cfs. indiv_id||cfs.day_idnt-1  in (select indiv_id||first_open  from cf_triggers)
-or  cfs.indiv_id||cfs.day_idnt-2  in (select indiv_id||first_open  from cf_triggers)
-or  cfs.indiv_id||cfs.day_idnt-3 in (select indiv_id||first_open  from cf_triggers)
-or  cfs.indiv_id||cfs.day_idnt-4 in (select indiv_id||first_open  from cf_triggers)
-or  cfs.indiv_id||cfs.day_idnt-5 in (select indiv_id||first_open  from cf_triggers)
-or  cfs.indiv_id||cfs.day_idnt-6 in (select indiv_id||first_open  from cf_triggers)
-or  cfs.indiv_id||cfs.day_idnt-7 in (select indiv_id||first_open  from cf_triggers)
-or  cfs.indiv_id||cfs.day_idnt-8 in (select indiv_id||first_open  from cf_triggers))
+where  cfs. indiv_id||(cfs.day_idnt+25)in (select distinct  (indiv_id||first_open)  from cf_triggers)
+
+
+ group by cft. campaign_type
+ 
+cft. indiv_id||cft.day_idnt in (select indiv_id||first_open  from cf_triggers)
+or cft. indiv_id||cft.day_idnt-1  in (select indiv_id||first_open  from cf_triggers)
+or  cft.indiv_id||cft.day_idnt-2  in (select indiv_id||first_open  from cf_triggers)
+or  cft.indiv_id||cft.day_idnt-3 in (select indiv_id||first_open  from cf_triggers)
+or  cft.indiv_id||cft.day_idnt-4 in (select indiv_id||first_open  from cf_triggers)
+or  cft.indiv_id||cft.day_idnt-5 in (select indiv_id||first_open  from cf_triggers)
+or  cft.indiv_id||cft.day_idnt-6 in (select indiv_id||first_open  from cf_triggers)
+or  cft.indiv_id||cft.day_idnt-7 in (select indiv_id||first_open  from cf_triggers)
+or  cft.indiv_id||cft.day_idnt-8 in (select indiv_id||first_open  from cf_triggers)

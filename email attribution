@@ -1,0 +1,80 @@
+create table email_campaigns as
+select
+rf.indiv_id,
+rf.ca_valid_email_flg                                                                                                                                                                                                                                                                                                       as CANADA ,
+min(tm.day_dt)                                                                                                                                                                                                                                                                                                                 as first_open,
+coalesce((substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2017', -1))) , (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1))) )as campaign_name,
+max(res.wk_idnt)                                                                                                                                                                                                                                                                                                             as wk_idnt
+from ua_campaign camp
+inner join ua_email_resolution res on res.campaign_id = camp.campaign_id
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'  and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+inner join ua_pos_tm_day tm on to_date(res.opened_dt) = tm.day_dt
+where camp.campaign_name not like '%TEST%'
+and res.wk_idnt between 201801 and 201809
+group by rf.indiv_id, coalesce((substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2017', -1))) , (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1))) ), res.wk_idnt, rf.ca_valid_email_flg;
+
+select * from email_campaigns where rownum <100
+
+create table email_attributed_sales as
+select
+tm.day_dt,
+dtl.indiv_id,
+ count(distinct dtl.pos_trans_key)                   as store_trans,
+ sum(dtl.extended_sls_amt)                              as store_sales,
+ sum(dtl.grs_mrgn_amt)                                       as store_gm,
+ sum(dtl.qty)                                                             as store_units
+ from         ua_pos_trans_dtl dtl
+ inner join ua_store str on dtl.loc_key = str.loc_key
+ inner join ua_pos_tm_day tm on dtl.day_idnt = tm.day_idnt
+ inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key
+ where dtl.wk_idnt between 201801 and 201809 and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+ and dtl.indiv_id in (select distinct  indiv_id from email_campaigns)
+ group by tm.day_dt,  dtl.indiv_id;
+
+drop table email_campaign_sales;
+create table email_campaign_sales as
+select
+ec.indiv_id                                              as indiv_id_trigger,
+eas.indiv_id                                              as indiv_id_purchase, 
+ sum(eas.store_trans)                          as transactions, 
+ sum(eas.store_sales)                          as sales,
+ ec.campaign_name                            as campaign_name,
+ eas.day_dt                                               as purchase_day_idnt,
+ ec.first_open                                        as first_open,
+ eas.day_dt - ec.first_open               as days_to_sale
+ from email_attributed_sales eas 
+left join  email_campaigns ec on  eas.indiv_id = ec.indiv_id and ec.first_open < eas.day_dt
+group by eas.day_dt, ec.first_open, ec.indiv_id, eas.indiv_id, ec.campaign_name
+order by eas.day_dt, ec.first_open, ec.indiv_id, eas.indiv_id, ec.campaign_name,  days_to_sale;
+
+create table days_to_purchase as
+select
+indiv_id_purchase,
+min(days_to_sale) as first_purchase,
+indiv_id_purchase||min(days_to_sale) as indiv_id_days_to_sale
+from email_campaign_sales 
+group by indiv_id_purchase;
+
+select
+count(distinct ecs.indiv_id_purchase) as customers_made_purchase,
+ecs.campaign_name,
+sum(ecs.transactions) as transactions,
+sum(ecs.sales) as sales,
+avg(ecs.days_to_sale) as average_days_to_sale
+from email_campaign_sales ecs
+inner join  days_to_purchase dtp on dtp.indiv_id_days_to_sale = ecs.indiv_id_purchase||ecs.days_to_sale
+group by ecs.campaign_name
+order by sales desc;
+
+SELECT 
+distinct (coalesce((substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2017', -1))) , (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1))) ))as campaign_name,
+         COUNT (distinct res.contact_urn) AS sent,
+         COUNT (res.opened_dt) AS opens,         
+         COUNT (res.max_click_dt)  AS clicks
+from ua_campaign camp
+inner join ua_email_resolution res on res.campaign_id = camp.campaign_id
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'  and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+where camp.campaign_name not like '%TEST%'
+and res.wk_idnt between 201801 and 201809
+and camp.campaign_name  not like '%OrderReady%'
+group by (coalesce((substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2017', -1))) , (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1))) ));

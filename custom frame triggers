@@ -3,7 +3,7 @@ create table cf_triggers as
 select
 rf.indiv_id,
 rf.ca_valid_email_flg ,
-min(tm.day_idnt)                                                                                                                                                                                                                                                                                                       as first_open,
+min(tm.day_dt)                                                                                                                                                                                                                                                                                                                 as first_open,
 coalesce((substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2017', -1))) , (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1))) )as campaign_name,
 case when camp.campaign_name like '%TRG_CUSTF_CF_Estimate_Automated_2016_US%' then 'CF_estimate_US'
 when camp.campaign_name like '%TRG_CUSTF_CF_Estimate_Automated_2016_CAN%' then 'CF_estimate_CAN'
@@ -28,25 +28,16 @@ and camp.campaign_name  not like '%OrderReady%'
 group by rf.indiv_id, camp.campaign_name, res.campaign_id, rf.ca_valid_email_flg ;
 
 select
-campaigns, 
-count(distinct indiv_id)
-from(
-select 
-indiv_id, 
-count(distinct campaign_name) as campaigns
-from cf_triggers)
+distinct 
+campaign_name,
+campaign_type
+from cf_triggers
 
-
-select wk_idnt,
-count(distinct indiv_id)
-from emailed_opens
-group by wk_idnt
-order by wk_idnt asc;
 
 drop table custom_frame_sales;
 create table custom_frame_sales as
 select
-dtl.day_idnt,
+tm.day_dt,
 dtl.indiv_id,
  count(distinct dtl.pos_trans_key)                   as store_trans,
  sum(dtl.extended_sls_amt)                              as store_sales,
@@ -59,33 +50,64 @@ dtl.indiv_id,
  where dtl.wk_idnt between 201801 and 201809 and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
  and dtl.indiv_id in (select distinct  indiv_id from cf_triggers)
   and sku.grp_desc like '%CUSTOM FRAMING%'
- group by dtl.day_idnt,  dtl.indiv_id
- 
- select * from custom_frame_sales where rownum <55
- 
- select
- count(distinct cft.indiv_id),
- count(  cft.indiv_id)
- from cf_triggers cft
- inner join custom_frame_sales cfs on cfs.indiv_id = cft.indiv_id
- 
- 
- select 
- count(distinct cfs.indiv_id) as customers, 
- sum(cfs.store_trans) as transactions, 
- sum(cfs.store_sales) as sales
- from custom_frame_sales cfs
-where  cfs. indiv_id||(cfs.day_idnt+25)in (select distinct  (indiv_id||first_open)  from cf_triggers)
+ group by tm.day_dt,  dtl.indiv_id
+
+drop table custom_frame_triggers_sales;
+create table custom_frame_triggers_sales as
+select
+cft.indiv_id                                              as indiv_id_trigger,
+cfs.indiv_id                                              as indiv_id_purchase, 
+ sum(cfs.store_trans)                          as transactions, 
+ sum(cfs.store_sales)                          as sales,
+ cft.campaign_type                              as campaign_type,
+ cfs.day_dt                                                as purchase_day_idnt,
+ cft.first_open                                        as first_open,
+ cfs.day_dt - cft.first_open               as days_to_sale
+ from cf_triggers cft 
+left join  custom_frame_sales cfs on  cft.indiv_id = cfs.indiv_id and cft.first_open < cfs.day_dt
+group by cfs.day_dt, cft.first_open, cft.indiv_id, cfs.indiv_id, cft.campaign_type
+order by cfs.day_dt, cft.first_open, cft.indiv_id, cfs.indiv_id, cft.campaign_type, days_to_sale;
+
+create table days_to_purchase as
+select
+indiv_id_purchase,
+min(days_to_sale) as first_purchase,
+indiv_id_purchase||min(days_to_sale) as indiv_id_days_to_sale
+from custom_frame_triggers_sales cfts
+group by indiv_id_purchase;
+
+select
+count(distinct cfts.indiv_id_purchase) as customers_made_purchase,
+cfts.campaign_type,
+sum(cfts.transactions) as transactions,
+sum(cfts.sales) as sales,
+avg(cfts.days_to_sale) as average_days_to_sale
+from custom_frame_triggers_sales cfts
+inner join  days_to_purchase dtp on dtp.indiv_id_days_to_sale = cfts.indiv_id_purchase||cfts.days_to_sale
+group by cfts.campaign_type;
+
+select 
+campaign_type,
+count(distinct indiv_id)
+from cf_triggers
+where first_open is not null
+group by campaign_type
+
+SELECT 
+coalesce((substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2017', -1))) , (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1))) )as campaign_name,
+         COUNT (distinct res.contact_urn) AS sent,
+         COUNT (res.opened_dt) AS opens,         
+         COUNT (res.max_click_dt)  AS clicks
+from ua_campaign camp
+inner join ua_email_resolution res on res.campaign_id = camp.campaign_id
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'  and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+inner join ua_pos_tm_day tm on to_date(res.opened_dt) = tm.day_dt
+where camp.campaign_name like '%TRG%'
+and (camp.campaign_name like '%CF%'
+or upper(camp.campaign_name) like '%CUSTOM%FRAME %')
+and camp.campaign_name not like '%TEST%'
+and res.wk_idnt between 201801 and 201809
+and camp.campaign_name  not like '%OrderReady%'
+group by  camp.campaign_name ;
 
 
- group by cft. campaign_type
- 
-cft. indiv_id||cft.day_idnt in (select indiv_id||first_open  from cf_triggers)
-or cft. indiv_id||cft.day_idnt-1  in (select indiv_id||first_open  from cf_triggers)
-or  cft.indiv_id||cft.day_idnt-2  in (select indiv_id||first_open  from cf_triggers)
-or  cft.indiv_id||cft.day_idnt-3 in (select indiv_id||first_open  from cf_triggers)
-or  cft.indiv_id||cft.day_idnt-4 in (select indiv_id||first_open  from cf_triggers)
-or  cft.indiv_id||cft.day_idnt-5 in (select indiv_id||first_open  from cf_triggers)
-or  cft.indiv_id||cft.day_idnt-6 in (select indiv_id||first_open  from cf_triggers)
-or  cft.indiv_id||cft.day_idnt-7 in (select indiv_id||first_open  from cf_triggers)
-or  cft.indiv_id||cft.day_idnt-8 in (select indiv_id||first_open  from cf_triggers)

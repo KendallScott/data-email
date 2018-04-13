@@ -1,0 +1,15 @@
+
+select
+count(distinct ctrl.email_id) as emails,
+ctrl.product_group_desc
+from(
+select
+email_id,
+sales_12mth,
+product_group_desc
+from ua_product_group_email
+where sales_12mth >0
+group by email_id, product_group_desc) ctrl
+inner join  ua_email_ref rf on ctrl.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
+where ctrl.sales_12mth
+group by ctrl.product_group_desc

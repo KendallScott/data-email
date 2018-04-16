@@ -1,0 +1,8 @@
+select e.campaign_name,
+cell_name, 
+count (*)
+from ua_email_contact_history b
+join ua_campaign e on b.campaign_id = e.campaign_id
+join ua_campaign_cell k on b.segment_select_id = k.segment_select_id
+where e.campaign_name  like  '%20180412_12AM_YARN%'
+group by e.campaign_name,cell_name;

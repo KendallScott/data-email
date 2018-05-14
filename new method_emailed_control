@@ -1,12 +1,12 @@
 -----Start ROCK code-----
-DEFINE start_day_idnt = '2018078';
-DEFINE end_day_idnt = '2018084';
-DEFINE start_wk_idnt = '201812';
-DEFINE end_wk_idnt = '201812';
-DEFINE start_dt = '22apr2018';
-DEFINE end_dt = '28apr2018';
-DEFINE start_date = ''22-APR-18'';
-DEFINE end_date = ''28-APR-18'';
+DEFINE start_day_idnt = '2018092';
+DEFINE end_day_idnt = '2018098';
+DEFINE start_wk_idnt = '201814';
+DEFINE end_wk_idnt = '201814';
+DEFINE start_dt = '06may2018';
+DEFINE end_dt = '12may2018';
+DEFINE start_date = ''06-MAY-18'';
+DEFINE end_date = ''12-MAY-18'';
 DEFINE week = 'weekly';
 set worksheetname incremental_email_&week;
 
@@ -83,12 +83,13 @@ left join (select
         where tm.wk_idnt between  &end_wk_idnt and &end_wk_idnt
         group by emailed.indiv_id) ecom on emailed.indiv_id = ecom.indiv_id
 where emailed.wk_idnt = &end_wk_idnt and emailed.canada = 'N';
+
 --openers for US and Canada
 select
 canada,
 count(distinct indiv_id) as openers
 from weekly_emailed
-where wk_idnt = 201810
+where wk_idnt = 201814
 and first_open is not null
 group by canada
 

@@ -14,7 +14,7 @@ from  unica.ua_email_click click
 inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
 inner join ua_pos_tm_day tm on to_date(click.trans_dt)= tm.day_dt
 inner join ua_email_ref rf on click.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y' and rf.ca_valid_email_flg = 'N' and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
-where click.wk_idnt = 201809 and offer.channel= 'EMAIL'
+where click.wk_idnt = 201814 and offer.channel= 'EMAIL'
 group by offer.offer_name, rf.indiv_id,  click.contact_urn;
 
 --store products
@@ -125,7 +125,7 @@ from  customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click = tm.day_idnt
 inner join ua_ecom_order_dtl ecom on clicks.indiv_id = ecom.indiv_id and to_date(ecom.dmnd_dt) = tm.day_dt
 left join ua_pos_prod_sku sku on ecom.sku_name = sku.sku_idnt
-where tm.wk_idnt between 201809 and 201809 
+where tm.wk_idnt between 201814 and 201814 
 and ecom.line_item_type = 'DEMAND'
 group by clicks.contact_urn, clicks.offer_name, sku.div_desc, sku.grp_desc, sku.class_desc, sku.sbclass_desc, ecom.promoid;
 
@@ -240,7 +240,7 @@ inner join ua_pos_trans_dtl dtl on click.indiv_id = dtl.indiv_id and dtl.day_idn
 inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key
 inner join ua_store str on dtl.loc_key = str.loc_key and str.distt_idnt != '999'
 left join ua_pos_coupon_dtl cpn on dtl.pos_trans_key = cpn.pos_trans_key and dtl.sku_key = cpn.sku_key and dtl.TRANS_DETAIL_SQNC_NBR = cpn.COUPON_SQNC_NBR  
-where tm.wk_idnt between 201809 and 201809 
+where tm.wk_idnt between 201814 and 201814 
 group by  click.contact_urn, click.offer_name, sku.div_desc, sku.grp_desc, sku.class_desc, sku.sbclass_desc;
 
 
@@ -253,7 +253,7 @@ sum(product_ecom.division_sales)                                                
 from customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click= tm.day_idnt
 left join  email_product_groups_ecom product_ecom on  clicks.contact_urn_offer_name= product_ecom.contact_urn_offer_name
-where tm.wk_idnt between 201809 and 201809
+where tm.wk_idnt between 201814 and 201814
 and product_ecom.division_group is not null
 group by clicks.offer_name, product_ecom.division_group
 order by clicks desc;
@@ -267,7 +267,7 @@ sum(product.division_sales)                                                     
 from customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click= tm.day_idnt
 left join  email_product_groups product on clicks.contact_urn_offer_name= product.contact_urn_offer_name
-where tm.wk_idnt between 201809 and 201809
+where tm.wk_idnt between 201814 and 201814
 and product.division_group is not null
 group by clicks.offer_name, product.division_group
 order by clicks desc;
@@ -291,7 +291,7 @@ sum(ecom.dmnd_net_ttl_amt)                                                      
 from customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click= tm.day_idnt
 left join ua_ecom_order_dtl ecom on ecom.indiv_id = clicks.indiv_id and (to_date(ecom.dmnd_dt) = tm.day_dt)  and ecom.line_item_type = 'DEMAND'
-where tm.wk_idnt between 201809 and 201809
+where tm.wk_idnt between 201814 and 201814
 group by clicks.offer_name
 order by clicks desc;
 
@@ -306,6 +306,6 @@ from customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click= tm.day_idnt
 left join ua_pos_trans_dtl dtl on dtl.indiv_id = clicks.indiv_id and dtl.day_idnt = tm.day_idnt and dtl.trans_typ_key in(19,22,33)
 left join ua_store str on dtl.loc_key = str.loc_key and str.distt_idnt != '999'
-where tm.wk_idnt between 201809 and 201809
+where tm.wk_idnt between 201814 and 201814
 group by clicks.offer_name
 order by clicks desc;

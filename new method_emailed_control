@@ -44,7 +44,7 @@ select distinct
 rf.indiv_id                                         as indiv_id,
 tm.wk_idnt+1                                  as wk_idnt,
 rf.ca_valid_email_flg                    as canada
-from  unica.tmp_us_weekly_control_hh ctrl
+from  unica.tmp_can_weekly_control_hh ctrl
 inner join  ua_email_ref rf on ctrl.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
 inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
   where tm.wk_idnt+1 between &start_wk_idnt and &end_wk_idnt

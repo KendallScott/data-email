@@ -67,7 +67,7 @@ left join (
          from         ua_pos_trans_dtl dtl
          inner join ua_store str on dtl.loc_key = str.loc_key
         inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
-         inner join weekly_emailed_2018  emailed  on dtl.indiv_id = emailed.indiv_id and emailed.wk_idnt = dtl.wk_idnt and to_date(emailed.first_open)<=tm.day_dt and emailed.canada = 'N'
+         inner join weekly_emailed  emailed  on dtl.indiv_id = emailed.indiv_id and emailed.wk_idnt = dtl.wk_idnt and to_date(emailed.first_open)<=tm.day_dt and emailed.canada = 'N'
          where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
         group by emailed.indiv_id, dtl.wk_idnt)stre on emailed.indiv_id = stre.indiv_id and emailed.wk_idnt=stre.wk_idnt
    left join(
@@ -79,7 +79,7 @@ left join (
         sum(ecom.flfll_unit_cnt)                                    as ecom_units
         from ua_ecom_order_dtl   ecom
         inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
-         inner join weekly_emailed_2018  emailed  on ecom.indiv_id = emailed.indiv_id and emailed.wk_idnt = tm.wk_idnt and to_date(emailed.first_open)<=tm.day_dt and emailed.canada = 'N'
+         inner join weekly_emailed  emailed  on ecom.indiv_id = emailed.indiv_id and emailed.wk_idnt = tm.wk_idnt and to_date(emailed.first_open)<=tm.day_dt and emailed.canada = 'N'
         where tm.wk_idnt between  &start_wk_idnt and &end_wk_idnt
         group by emailed.indiv_id, tm.wk_idnt) ecom on emailed.indiv_id = ecom.indiv_id and emailed.wk_idnt = ecom.wk_idnt
 where emailed.wk_idnt between &start_wk_idnt and &end_wk_idnt and emailed.canada = 'N'
@@ -115,7 +115,7 @@ left join (select
           sum(dtl.qty)                                                              as store_units
          from         ua_pos_trans_dtl dtl
          inner join ua_store str on dtl.loc_key = str.loc_key
-         inner join weekly_control_us_2018  con  on dtl.indiv_id = con.indiv_id and con.wk_idnt = dtl.wk_idnt
+         inner join weekly_control_us  con  on dtl.indiv_id = con.indiv_id and con.wk_idnt = dtl.wk_idnt
          where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
         group by con.indiv_id)stre on stre.indiv_id = con.indiv_id
    left join(
@@ -126,7 +126,7 @@ left join (select
         sum(ecom.flfll_unit_cnt)                                    as ecom_units
         from ua_ecom_order_dtl   ecom
         inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
-         inner join weekly_control_us_2018  con  on ecom.indiv_id = con.indiv_id and con.wk_idnt = tm.wk_idnt
+         inner join weekly_control_us  con  on ecom.indiv_id = con.indiv_id and con.wk_idnt = tm.wk_idnt
         where tm.wk_idnt between  &start_wk_idnt and &end_wk_idnt
         group by con.indiv_id) ecom on stre.indiv_id = ecom.indiv_id
 where con.wk_idnt  between &start_wk_idnt and &end_wk_idnt

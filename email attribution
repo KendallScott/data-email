@@ -1,5 +1,5 @@
 -----Start ROCK code-----
-DEFINE start_wk_idnt = '201810';
+DEFINE start_wk_idnt = '201801';
 DEFINE end_wk_idnt = '201815';
 DEFINE week = 'week_15';
 

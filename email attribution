@@ -1,8 +1,9 @@
 -----Start ROCK code-----
 DEFINE start_wk_idnt = '201801';
-DEFINE end_wk_idnt = '201815';
-DEFINE week = 'week_15';
+DEFINE end_wk_idnt = '201816';
+DEFINE week = 'week_16';
 
+drop table email_campaigns_&week;
 drop table email_campaign_sales_&week;
 drop table email_attributed_sales_&week;
 drop table email_campaign_sales_&week;
@@ -22,8 +23,6 @@ where camp.campaign_name not like '%TRG%'
 and res.wk_idnt between &start_wk_idnt and &end_wk_idnt
 group by rf.indiv_id, coalesce((substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2017', -1))) , (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1))) ), res.wk_idnt, rf.ca_valid_email_flg;
 
-select * from email_campaigns_&week where rownum <77
-
 create table email_attributed_sales_&week  as
 select
 tm.day_idnt,
@@ -38,17 +37,8 @@ dtl.indiv_id,
  where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) 
  and dtl.indiv_id||dtl.day_idnt in (select distinct  indiv_id||first_open  from email_campaigns_&week where CANADA='N')
  group by tm.day_idnt,  dtl.indiv_id;
- 
- select
- * from 
- ua_pos_trans_dtl dtl
- where dtl.indiv_id||dtl.day_idnt in (select distinct indiv_id||first_open from email_campaigns_&week where CANADA='N')
- and dtl.wk_idnt = 201815
- 
- select * from email_attributed_sales_&week  where rownum <66
- 
- 
- create table email_campaign_sales&week  as
+
+  create table email_campaign_sales&week  as
 select
  ec.campaign_name                             as campaign_name,
  count(distinct ec.indiv_id)               as emailed,
@@ -59,3 +49,5 @@ count(distinct eas.indiv_id)              as shopping_customers,
 inner  join   email_campaigns_&week ec on  eas.indiv_id = ec.indiv_id and eas.day_idnt = ec.first_open 
 group by  ec.campaign_name
 order by  ec.campaign_name;
+
+select * from  email_campaign_sales&week 

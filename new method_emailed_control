@@ -1,7 +1,7 @@
 -----Start ROCK code-----
-DEFINE start_wk_idnt = '201815';
-DEFINE end_wk_idnt = '201815';
-DEFINE week = 'week_15';
+DEFINE start_wk_idnt = '201816';
+DEFINE end_wk_idnt = '201816';
+DEFINE week = 'week_16';
 set worksheetname incremental_email_&week;
 
 drop table weekly_emailed;
@@ -21,8 +21,15 @@ from         ua_email_contact_history hist
   inner join ua_email_resolution      res   on hist.contact_urn     = res.contact_urn
   inner join ua_pos_tm_day tm on   to_date(camp.start_dt) = tm.day_dt
 where tm.wk_idnt between &start_wk_idnt and &end_wk_idnt
+and res.wk_idnt between &start_wk_idnt and &end_wk_idnt
 group by hist.wk_idnt, rf.indiv_id, rf.ca_valid_email_flg
 order by hist.wk_idnt;
+
+select 
+distinct
+wk_idnt
+from weekly_emailed 
+
 
 create table weekly_control_us as
 select distinct 
@@ -69,7 +76,7 @@ left join (
         inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
          inner join weekly_emailed  emailed  on dtl.indiv_id = emailed.indiv_id and emailed.wk_idnt = dtl.wk_idnt and to_date(emailed.first_open)<=tm.day_dt and emailed.canada = 'N'
          where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
-          and str.loc_cntry_desc = 'USA'
+         and str.loc_cntry_desc = 'USA'
         group by emailed.indiv_id, dtl.wk_idnt)stre on emailed.indiv_id = stre.indiv_id and emailed.wk_idnt=stre.wk_idnt
    left join(
     select
@@ -87,13 +94,52 @@ where emailed.wk_idnt between &start_wk_idnt and &end_wk_idnt and emailed.canada
 group by emailed.wk_idnt
 order by emailed.wk_idnt;
 
+SELECT 
+emailed.wk_idnt,
+count(distinct emailed.indiv_id)                                                                                                                                                                                                           as emailed_customers,
+count(distinct(coalesce (stre.indiv_id, ecom.indiv_id)))                                                                                                                                                             as shopping_customers,
+sum((coalesce(stre.store_trans,0))+ (coalesce(ecom.ecom_trans, 0)))                                                                                                                                 as trans,
+sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))                                                                                                                                 as sales,
+(round(sum(stre.store_gm)/sum(stre.store_sales), 4)) *   sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))            as gm
+from  weekly_control_us  emailed
+left join (
+          select
+          dtl.wk_idnt,
+          emailed.indiv_id,
+          count(distinct dtl.pos_trans_key)                   as store_trans,
+          sum(dtl.extended_sls_amt)                              as store_sales,
+          sum(dtl.grs_mrgn_amt)                                       as store_gm,
+          sum(dtl.qty)                                                              as store_units
+         from         ua_pos_trans_dtl dtl
+         inner join ua_store str on dtl.loc_key = str.loc_key
+        inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
+         inner join  weekly_control_us  emailed  on dtl.indiv_id = emailed.indiv_id and emailed.wk_idnt = dtl.wk_idnt 
+         where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+          and str.loc_cntry_desc = 'USA'
+        group by emailed.indiv_id, dtl.wk_idnt)stre on emailed.indiv_id = stre.indiv_id and emailed.wk_idnt=stre.wk_idnt
+   left join(
+    select
+        tm.wk_idnt,
+        emailed.indiv_id,
+        count(distinct ecom.order_id)                         as ecom_trans,
+        sum(ecom.flfll_net_ttl_amt)                            as ecom_sales,
+        sum(ecom.flfll_unit_cnt)                                    as ecom_units
+        from ua_ecom_order_dtl   ecom
+        inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
+         inner join  weekly_control_us  emailed  on ecom.indiv_id = emailed.indiv_id and emailed.wk_idnt = tm.wk_idnt 
+        where tm.wk_idnt between  &start_wk_idnt and &end_wk_idnt
+        group by emailed.indiv_id, tm.wk_idnt) ecom on emailed.indiv_id = ecom.indiv_id and emailed.wk_idnt = ecom.wk_idnt
+where emailed.wk_idnt between &start_wk_idnt and &end_wk_idnt
+group by emailed.wk_idnt
+order by emailed.wk_idnt;
+
 --openers for US and Canada
 select
 wk_idnt,
 canada,
 count(distinct indiv_id) as openers
 from weekly_emailed
-where wk_idnt  between 201815 and 201815
+where wk_idnt  between 201816 and 201816
 and first_open is not null
 group by wk_idnt, canada
 order by wk_idnt, canada

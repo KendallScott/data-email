@@ -1,7 +1,7 @@
 -----Start ROCK code-----
-DEFINE start_wk_idnt = '201816';
-DEFINE end_wk_idnt = '201816';
-DEFINE week = 'week_16';
+DEFINE start_wk_idnt = '201817';
+DEFINE end_wk_idnt = '201817';
+DEFINE week = 'week_17';
 set worksheetname incremental_email_&week;
 
 drop table weekly_emailed;

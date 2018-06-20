@@ -1,7 +1,7 @@
 -----Start ROCK code-----
-DEFINE start_wk_idnt = '201817';
-DEFINE end_wk_idnt = '201817';
-DEFINE week = 'week_17';
+DEFINE start_wk_idnt = '201819';
+DEFINE end_wk_idnt = '201819';
+DEFINE week = 'week_19';
 set worksheetname incremental_email_&week;
 
 drop table weekly_emailed;
@@ -266,7 +266,7 @@ when (UPPER(clicks.offer_name)) like '%JAR%'                                    
 when (UPPER(clicks.offer_name)) like '%METAL STAMPING%'                                                      and sku.sbclass_desc like '%METAL STAMPING%'   then  sum(ecom.dmnd_net_ttl_amt)
 when (UPPER(clicks.offer_name)) like '%CHARGER%'                                                             and sku.class_desc like '%CHARGER%'            then  sum(ecom.dmnd_net_ttl_amt)
 when (UPPER(clicks.offer_name)) like '%SLIME%'                                                               and sku.class_desc like '%CRAFT ADHESIVE%'     then  sum(ecom.dmnd_net_ttl_amt)
-when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') and ecom.promoid is not null then sum(ecom.dmnd_net_ttl_amt)
+when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%'  or (UPPER(clicks.offer_name)) like  '%ANY ONE REGULAR PRICE ITEM%' or (UPPER(clicks.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') and ecom.promoid is not null then sum(ecom.dmnd_net_ttl_amt)
 else null end)                                                as division_sales,
 (case 
 when ((UPPER(clicks.offer_name)) like '%CUSTOM FRAM%' or (UPPER(clicks.offer_name)) like '%CUSTOM-FRAM%' or (UPPER(clicks.offer_name)) like '%SCOTT BROTHERS%') then 'custom framing'
@@ -313,7 +313,7 @@ when (UPPER(clicks.offer_name)) like '%JAR%'                                    
 when (UPPER(clicks.offer_name)) like '%METAL STAMPING%'                                                                                                     then 'metal stamping'
 when (UPPER(clicks.offer_name)) like '%CHARGER%'                                                                                                            then 'charger'
 when (UPPER(clicks.offer_name)) like '%SLIME%'                                                                                                              then 'slime'
-when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%'or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') then 'coupon'
+when ((UPPER(clicks.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(clicks.offer_name)) like  '%ANY ONE REGULAR PRICE ITEM%'  or (UPPER(clicks.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%' or (UPPER(clicks.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(clicks.offer_name)) like '%COUPON%'or (UPPER(clicks.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(clicks.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') then 'coupon'
 else null end)                                                                                                                                             as division_group
 from  customer_clicks clicks
 inner join ua_pos_tm_day tm on clicks.last_click = tm.day_idnt
@@ -379,7 +379,7 @@ when (UPPER(click.offer_name)) like '%JAR%'                                     
 when (UPPER(click.offer_name)) like '%METAL STAMPING%'                                                      and sku.sbclass_desc like '%METAL STAMPING%'   then sum(dtl.extended_sls_amt)
 when (UPPER(click.offer_name)) like '%CHARGER%'                                                             and sku.class_desc like '%CHARGER%'            then sum(dtl.extended_sls_amt)
 when (UPPER(click.offer_name)) like '%SLIME%'                                                               and sku.class_desc like '%CRAFT ADHESIVE%'     then sum(dtl.extended_sls_amt)
-when ((UPPER(click.offer_name)) like '%OFF ANY ONE REGULAR PRICE%'  or (UPPER(click.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%' or (UPPER(click.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(click.offer_name)) like '%COUPON%'or (UPPER(click.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(click.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') then sum(cpn.extended_sls_amt)
+when ((UPPER(click.offer_name)) like '%OFF ANY ONE REGULAR PRICE%'  or (UPPER(click.offer_name)) like  '%ANY ONE REGULAR PRICE ITEM%'  or (UPPER(click.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%' or (UPPER(click.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(click.offer_name)) like '%COUPON%'or (UPPER(click.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(click.offer_name)) like '%OFF ENTIRE REGULAR PRICE%') then sum(cpn.extended_sls_amt)
 else null end)                                                as division_sales,
 (case 
 when ((UPPER(click.offer_name)) like '%CUSTOM FRAM%' or (UPPER(click.offer_name)) like '%CUSTOM-FRAM%' or (UPPER(click.offer_name)) like '%SCOTT BROTHERS%') then 'custom framing'
@@ -426,7 +426,7 @@ when (UPPER(click.offer_name)) like '%JAR%'                                     
 when (UPPER(click.offer_name)) like '%METAL STAMPING%'                                                                                                     then 'metal stamping'
 when (UPPER(click.offer_name)) like '%CHARGER%'                                                                                                            then 'charger'
 when (UPPER(click.offer_name)) like '%SLIME%'                                                                                                              then 'slime'
-when ((UPPER(click.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(click.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%'  or (UPPER(click.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(click.offer_name)) like '%COUPON%' or (UPPER(click.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(click.offer_name)) like '%OFF ENTIRE REGULAR PRICE%' or (UPPER(click.offer_name)) like '%AORPI%') then 'coupon sales'
+when ((UPPER(click.offer_name)) like '%OFF ANY ONE REGULAR PRICE%' or (UPPER(click.offer_name)) like  '%ANY ONE REGULAR PRICE ITEM%'   or (UPPER(click.offer_name)) like '%EXTRA 20% OFF ALMOST EVERYTHIN%'  or (UPPER(click.offer_name)) like '%OFF ALL REGULAR PRICE%' or (UPPER(click.offer_name)) like '%COUPON%' or (UPPER(click.offer_name)) like '%OFF ENTIRE PURCHASE INCLUDING SALE ITEMS%' or (UPPER(click.offer_name)) like '%OFF ENTIRE REGULAR PRICE%' or (UPPER(click.offer_name)) like '%AORPI%') then 'coupon sales'
 else null end)                                                                                                                                             as division_group
 from  customer_clicks click
 inner join ua_pos_tm_day tm on click.last_click = tm.day_idnt

@@ -1,0 +1,22 @@
+select 
+res.mailed_dt,
+count(distinct click.contact_urn) as clicks,
+offer.offer_name
+from Unica.Ua_Email_Click  click
+inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
+inner join ua_email_resolution res on res.contact_urn = click.contact_urn
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+where click.wk_idnt between 201814 and 201819
+--and camp.campaign_name like '20180112_EOW%'
+and camp.campaign_name in 
+(select 
+distinct
+camp.campaign_name 
+from Unica.Ua_Email_Click  click
+inner join unica.ua_campaign_offer offer on offer.offer_id = click.offer_id
+inner join ua_email_resolution res on res.contact_urn = click.contact_urn
+inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+where offer.offer_name like '%Summer Lookbook%'
+and click.wk_idnt between 201814 and 201819)
+group by offer.offer_name, res.mailed_dt
+order by res.mailed_dt, clicks desc

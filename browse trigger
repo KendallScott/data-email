@@ -1,0 +1,58 @@
+-----Start ROCK code-----
+DEFINE start_wk_idnt = '201801';
+DEFINE end_wk_idnt = '201819';
+DEFINE week = 'trg';
+
+drop table email_campaigns_&week;
+drop table email_campaign_sales_&week;
+drop table email_attributed_sales_&week;
+drop table email_campaign_sales_&week;
+
+select
+distinct campaign_name
+from ua_campaign
+where upper(campaign_name) like '%BROWSE%'
+
+create table email_campaigns_&week as
+select
+rf.indiv_id,
+rf.ca_valid_email_flg                                                                                                                                                                                                                                                                                                       as CANADA ,
+min(tm.day_idnt)                                                                                                                                                                                                                                                                                                                 as first_open,
+camp.campaign_name,
+max(res.wk_idnt)                                                                                                                                                                                                                                                                                                             as wk_idnt
+from ua_campaign camp
+inner join ua_email_resolution res on res.campaign_id = camp.campaign_id
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'  and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
+inner join ua_pos_tm_day tm on to_date(res.opened_dt) = tm.day_dt
+where camp.campaign_name like '%4cite%'
+and res.wk_idnt between &start_wk_idnt and &end_wk_idnt
+group by rf.indiv_id, camp.campaign_name, res.wk_idnt, rf.ca_valid_email_flg;
+
+create table email_attributed_sales_&week  as
+select
+tm.day_idnt,
+dtl.indiv_id,
+ count(distinct dtl.pos_trans_key)                   as trans,
+ sum(dtl.extended_sls_amt)                              as sales,
+ sum(dtl.grs_mrgn_amt)                                       as gm,
+ sum(dtl.qty)                                                             as units
+ from         ua_pos_trans_dtl dtl
+ inner join ua_store str on dtl.loc_key = str.loc_key
+ inner join ua_pos_tm_day tm on dtl.day_idnt = tm.day_idnt
+ where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) 
+ and dtl.indiv_id||dtl.day_idnt in (select distinct  indiv_id||first_open  from email_campaigns_&week where CANADA='N')
+ group by tm.day_idnt,  dtl.indiv_id;
+
+  create table email_campaign_sales&week  as
+select
+ ec.campaign_name                             as campaign_name,
+ count(distinct ec.indiv_id)               as emailed,
+count(distinct eas.indiv_id)              as shopping_customers, 
+ sum(eas.trans)                          as transactions, 
+ sum(eas.sales)                          as sales
+ from email_attributed_sales_&week eas 
+inner  join   email_campaigns_&week ec on  eas.indiv_id = ec.indiv_id and eas.day_idnt = ec.first_open 
+group by  ec.campaign_name
+order by  ec.campaign_name;
+
+select * from  email_campaign_sales&week 

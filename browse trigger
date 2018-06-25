@@ -1,6 +1,6 @@
 -----Start ROCK code-----
 DEFINE start_wk_idnt = '201801';
-DEFINE end_wk_idnt = '201819';
+DEFINE end_wk_idnt = '201820';
 DEFINE week = 'trg';
 
 drop table email_campaigns_&week;
@@ -13,6 +13,8 @@ distinct campaign_name
 from ua_campaign
 where upper(campaign_name) like '%BROWSE%'
 
+select * from email_campaigns_&week  where rownum <100
+
 create table email_campaigns_&week as
 select
 rf.indiv_id,
@@ -24,7 +26,7 @@ from ua_campaign camp
 inner join ua_email_resolution res on res.campaign_id = camp.campaign_id
 inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'  and rf.VALID_ADDR_PREF_INDIV_EM_FLG ='Y'
 inner join ua_pos_tm_day tm on to_date(res.opened_dt) = tm.day_dt
-where camp.campaign_name like '%4cite%'
+where upper(camp.campaign_name) like '%BROWSE%'
 and res.wk_idnt between &start_wk_idnt and &end_wk_idnt
 group by rf.indiv_id, camp.campaign_name, res.wk_idnt, rf.ca_valid_email_flg;
 
@@ -42,6 +44,9 @@ dtl.indiv_id,
  where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) 
  and dtl.indiv_id||dtl.day_idnt in (select distinct  indiv_id||first_open  from email_campaigns_&week where CANADA='N')
  group by tm.day_idnt,  dtl.indiv_id;
+ 
+ select * from email_attributed_sales_&week  where rownum <50
+ 
 
   create table email_campaign_sales&week  as
 select
@@ -56,3 +61,18 @@ group by  ec.campaign_name
 order by  ec.campaign_name;
 
 select * from  email_campaign_sales&week 
+
+TRG_ABAND_20170323_4Cite_Recurring_Abandoned_Browse_Trigger  (20
+
+SELECT 
+        camp.campaign_name,
+         COUNT (distinct res.contact_urn) AS sent,
+         COUNT (res.opened_dt) AS opens,         
+         COUNT (res.max_click_dt)  AS clicks
+    FROM ua_email_resolution res
+    inner join ua_campaign camp on camp.campaign_id = res.campaign_id
+    inner join ua_campaign_cell cell on cell.campaign_id = camp.campaign_id
+    inner join ua_email_ref rf on res.email_id        = rf.email_id
+   WHERE res.wk_idnt BETWEEN 201801 AND 201820
+and upper(camp.campaign_name) like '%BROWSE%'
+group by camp.campaign_name

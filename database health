@@ -22,6 +22,15 @@ count (distinct email_id) as emails,
 count(email_id) as all_emails
 from ua_email_source
 
+create table dormant_customers as
+select
+indiv_id
+   from         ua_email_ref rf
+  inner join ua_pos_tm_day tm on   to_date(rf.dormant_dt) = tm.day_dt
+  inner join ua_email_source src on src.email_id = rf.email_id
+where tm.wk_idnt between &start_wk_idnt and &end_wk_idnt
+ and rf.pref_indiv_em_flg = 'Y' ;
+
 
 
 select 

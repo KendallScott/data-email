@@ -1,7 +1,7 @@
 -----Start ROCK code-----
-DEFINE start_wk_idnt = '201819';
-DEFINE end_wk_idnt = '201819';
-DEFINE week = 'week_19';
+DEFINE start_wk_idnt = '201820';
+DEFINE end_wk_idnt = '201820';
+DEFINE week = 'week_20';
 set worksheetname incremental_email_&week;
 
 drop table weekly_emailed;
@@ -74,7 +74,7 @@ left join (
          from         ua_pos_trans_dtl dtl
          inner join ua_store str on dtl.loc_key = str.loc_key
         inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
-         inner join weekly_emailed  emailed  on dtl.indiv_id = emailed.indiv_id and emailed.wk_idnt = dtl.wk_idnt and to_date(emailed.first_open)<=tm.day_dt and emailed.canada = 'N'
+         inner join weekly_emailed  emailed  on dtl.indiv_id = emailed.indiv_id and emailed.wk_idnt = dtl.wk_idnt and emailed.canada = 'N'
          where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
          and str.loc_cntry_desc = 'USA'
         group by emailed.indiv_id, dtl.wk_idnt)stre on emailed.indiv_id = stre.indiv_id and emailed.wk_idnt=stre.wk_idnt
@@ -87,7 +87,7 @@ left join (
         sum(ecom.flfll_unit_cnt)                                    as ecom_units
         from ua_ecom_order_dtl   ecom
         inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
-         inner join weekly_emailed  emailed  on ecom.indiv_id = emailed.indiv_id and emailed.wk_idnt = tm.wk_idnt and to_date(emailed.first_open)<=tm.day_dt and emailed.canada = 'N'
+         inner join weekly_emailed  emailed  on ecom.indiv_id = emailed.indiv_id and emailed.wk_idnt = tm.wk_idnt and  emailed.canada = 'N'
         where tm.wk_idnt between  &start_wk_idnt and &end_wk_idnt
         group by emailed.indiv_id, tm.wk_idnt) ecom on emailed.indiv_id = ecom.indiv_id and emailed.wk_idnt = ecom.wk_idnt
 where emailed.wk_idnt between &start_wk_idnt and &end_wk_idnt and emailed.canada = 'N'
@@ -139,7 +139,7 @@ wk_idnt,
 canada,
 count(distinct indiv_id) as openers
 from weekly_emailed
-where wk_idnt  between 201816 and 201816
+where wk_idnt  between 201820 and 201820
 and first_open is not null
 group by wk_idnt, canada
 order by wk_idnt, canada

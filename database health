@@ -1,0 +1,51 @@
+select
+* 
+from ua_email 
+where rownum <100
+
+select
+* 
+from ua_email_ref 
+where rownum <100
+
+DEFINE start_wk_idnt = '201701';
+DEFINE end_wk_idnt = '201820';
+DEFINE week = 'week_20';
+
+select * from ua_email_ref where rownum <100
+select * from ua_email_source where rownum <100
+
+select * from ua_email where rownum<100
+
+select
+count (distinct email_id) as emails,
+count(email_id) as all_emails
+from ua_email_source
+
+
+
+select 
+   tm.wk_idnt                                   as wk_idnt,
+   count(distinct  rf.indiv_id )    as customers
+   from         ua_email_ref rf
+  inner join ua_pos_tm_day tm on   to_date(rf.dormant_dt) = tm.day_dt
+  inner join ua_email_source src on src.email_id = rf.email_id
+where tm.wk_idnt between &start_wk_idnt and &end_wk_idnt
+ and rf.pref_indiv_em_flg = 'Y' 
+group by tm.wk_idnt
+order by tm.wk_idnt;
+
+select 
+  src.data_src_cd,
+   tm.wk_idnt                                   as wk_idnt,
+   count(distinct  rf.indiv_id )    as customers
+   from         ua_email_ref rf
+  inner join ua_pos_tm_day tm on   to_date(rf.dormant_dt) = tm.day_dt
+  inner join ua_email_source src on src.email_id = rf.email_id
+where tm.wk_idnt between &start_wk_idnt and &end_wk_idnt
+ and rf.pref_indiv_em_flg = 'Y' 
+ and src.email_id||fst_activity_dt in (select email_id||min(fst_activity_dt) from ua_email_source group by email_id)
+ and rf.email_id in (select email_id from ua_email where last_open_dt is null)
+ and src.data_src_cd in ('TLOG', 'MILOY')
+group by tm.wk_idnt, src.data_src_cd
+order by data_src_cd, tm.wk_idnt;

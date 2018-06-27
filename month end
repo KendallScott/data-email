@@ -1,0 +1,44 @@
+select * from weekly_emailed where rownum <100
+
+select
+count(distinct indiv_id) as customers,
+sum(month_trans) as month_trans,
+sum(month_sales) as month_sales
+from month_cust_may may
+where indiv_id not in (select indiv_id from weekly_emailed)
+and month_trans is not null
+drop table monthly_emailed
+
+create table monthly_emailed as
+select
+indiv_id,
+min(first_open) as first_open,
+min(first_click) as first_click
+from weekly_emailed
+group by indiv_id;
+
+select
+count(distinct indiv_id) as customers,
+monthly_customer_group,
+sum(openers) as openers,
+sum(clickers) as clickers
+from(
+select
+may.monthly_customer_group,
+case when emailed. first_open is not null then (count(distinct may.indiv_id)) else null end as openers,
+case when emailed. first_click is not null then (count(distinct may.indiv_id)) else null end as clickers,
+may.indiv_id
+from month_cust_may may
+inner join monthly_emailed emailed on emailed.indiv_id = may.indiv_id
+where may.month_trans is not null
+group by may.monthly_customer_group, may.indiv_id, emailed.first_open, emailed.first_click)
+group by monthly_customer_group;
+
+select
+monthly_customer_group,
+count(distinct indiv_id)
+from month_cust_may may
+where indiv_id  in (select indiv_id from weekly_emailed)
+group by monthly_customer_group
+
+select * from month_cust_may where rownum <100

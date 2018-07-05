@@ -86,3 +86,16 @@ from (SELECT
        WHERE res.wk_idnt BETWEEN 201710 AND 201721
       GROUP BY res.wk_idnt, rf.indiv_id, rf.reduced_freq_flg, tm.fiscal_year, tm.fiscal_mth)
 group by indiv_id, reduced_freq_flg;
+
+create table first_activity_email as
+SELECT 
+tm.fiscal_year,
+tm.fiscal_mth,
+rf.indiv_id
+FROM ua_email_resolution res
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.ca_valid_email_flg= 'N'
+inner join ua_email email on rf.email_id = email.email_id
+inner join ua_pos_tm_day tm on  to_date(email.fst_activity_dt) = tm.day_dt
+WHERE( res.wk_idnt BETWEEN 201810 AND 201821
+or res.wk_idnt between 201710 and 201721)
+GROUP BY res.wk_idnt, rf.indiv_id,  tm.fiscal_year, tm.fiscal_mth

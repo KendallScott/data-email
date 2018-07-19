@@ -1,0 +1,63 @@
+-----Start ROCK code-----
+DEFINE start_wk_idnt = '201814';
+DEFINE end_wk_idnt = '201816';
+DEFINE week = 'week_16';
+
+drop table circ_email_customers;
+
+create table circ_email_customers as
+select
+distinct
+rf.indiv_id
+from ua_campaign camp
+inner join ua_email_resolution res on res.campaign_id = camp.campaign_id
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'   and rf.ca_valid_email_flg = 'N'
+where camp.campaign_name  like '%CIRC%'
+and res.wk_idnt between &start_wk_idnt and &end_wk_idnt
+
+create table circ_email_id as
+select
+distinct
+rf.email_id
+from ua_campaign camp
+inner join ua_email_resolution res on res.campaign_id = camp.campaign_id
+inner join ua_email_ref rf on res.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'   and rf.ca_valid_email_flg = 'N'
+where camp.campaign_name  like '%CIRC%'
+and res.wk_idnt between &start_wk_idnt and &end_wk_idnt
+
+select
+count(distinct indiv_id) as customers
+from circ_email_customers
+
+23,110,758
+
+
+unica.ua_cust_behave_segments
+
+select * from unica.ua_cust_behave_segments where rownum <100
+
+select
+seg.customer_segment,
+count(distinct circ.indiv_id) as customers
+from circ_email_customers circ
+inner join unica.ua_cust_behave_segments seg on circ.indiv_id = seg.indiv_id
+group by seg.customer_segment
+
+create table largest_product as
+select
+email_id,
+max(sales_12mth) as largest_sales
+from product_groups
+group by email_id;
+
+select * from   largest_product  where rownum <100
+
+select
+count(distinct lp.email_id) as emails,
+pg.product_group_desc 
+from product_groups pg
+inner join largest_product lp on lp.email_id = pg.email_id and lp.largest_sales = pg.sales_12mth
+inner join circ_email_id circ on circ.email_id = lp.email_id
+group by pg.product_group_desc
+
+ 

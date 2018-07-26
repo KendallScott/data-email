@@ -1,7 +1,7 @@
 -----Start ROCK code-----
-DEFINE start_wk_idnt = '201820';
-DEFINE end_wk_idnt = '201820';
-DEFINE week = 'week_20';
+DEFINE start_wk_idnt = '201819';
+DEFINE end_wk_idnt = '201824';
+DEFINE week = '2018';
 set worksheetname incremental_email_&week;
 
 drop table weekly_emailed;
@@ -74,7 +74,7 @@ left join (
          from         ua_pos_trans_dtl dtl
          inner join ua_store str on dtl.loc_key = str.loc_key
         inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
-         inner join weekly_emailed  emailed  on dtl.indiv_id = emailed.indiv_id and emailed.wk_idnt = dtl.wk_idnt and emailed.canada = 'N'
+         inner join weekly_emailed  emailed  on dtl.indiv_id = emailed.indiv_id and emailed.wk_idnt = dtl.wk_idnt and emailed.canada = 'N' and to_date(emailed.first_open)<=tm.day_dt 
          where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
          and str.loc_cntry_desc = 'USA'
         group by emailed.indiv_id, dtl.wk_idnt)stre on emailed.indiv_id = stre.indiv_id and emailed.wk_idnt=stre.wk_idnt
@@ -87,7 +87,7 @@ left join (
         sum(ecom.flfll_unit_cnt)                                    as ecom_units
         from ua_ecom_order_dtl   ecom
         inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
-         inner join weekly_emailed  emailed  on ecom.indiv_id = emailed.indiv_id and emailed.wk_idnt = tm.wk_idnt and  emailed.canada = 'N'
+         inner join weekly_emailed  emailed  on ecom.indiv_id = emailed.indiv_id and emailed.wk_idnt = tm.wk_idnt and  emailed.canada = 'N' and to_date(emailed.first_open)<=tm.day_dt 
         where tm.wk_idnt between  &start_wk_idnt and &end_wk_idnt
         group by emailed.indiv_id, tm.wk_idnt) ecom on emailed.indiv_id = ecom.indiv_id and emailed.wk_idnt = ecom.wk_idnt
 where emailed.wk_idnt between &start_wk_idnt and &end_wk_idnt and emailed.canada = 'N'
@@ -139,10 +139,10 @@ wk_idnt,
 canada,
 count(distinct indiv_id) as openers
 from weekly_emailed
-where wk_idnt  between 201820 and 201820
+where wk_idnt  between 201819 and 201824
 and first_open is not null
-group by wk_idnt, canada
-order by wk_idnt, canada
+group by  canada, wk_idnt
+order by canada, wk_idnt
 
 --control canada
 SELECT 
@@ -161,13 +161,14 @@ left join (select
          inner join ua_store str on dtl.loc_key = str.loc_key
         inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
          inner join weekly_control_can con  on dtl.indiv_id = con.indiv_id and con.wk_idnt = dtl.wk_idnt 
-         where dtl.wk_idnt between &end_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+         where dtl.wk_idnt between &end_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'  
          and str.loc_cntry_desc = 'CANADA'
         group by dtl.indiv_id) stre on con.indiv_id = stre.indiv_id
 where con.wk_idnt =  &end_wk_idnt
 
 --emailed canada
 SELECT 
+emailed.wk_idnt,
 count(distinct emailed.indiv_id)                                                                                                                                                                                                          as emailed_customers,
 count(distinct stre.indiv_id)                                                                                                                                                                                                                   as shopping_customers,
 sum(stre.store_trans)                                                                                                                                                                                                                                as trans,
@@ -183,11 +184,13 @@ left join (select
          inner join ua_store str on dtl.loc_key = str.loc_key
         inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
          inner join weekly_emailed emailed  on dtl.indiv_id = emailed.indiv_id and emailed.wk_idnt = dtl.wk_idnt 
-         where dtl.wk_idnt between &end_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+         where dtl.wk_idnt between &end_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999' and to_date(emailed.first_open)<=tm.day_dt 
          and emailed.canada= 'Y'
          and str.loc_cntry_desc = 'CANADA'
         group by dtl.indiv_id) stre on emailed.indiv_id = stre.indiv_id
-where emailed.wk_idnt =  &end_wk_idnt and emailed.canada= 'Y';
+where emailed.wk_idnt =  &end_wk_idnt and emailed.canada= 'Y'
+group by emailed.wk_idnt
+order by emailed.wk_idnt asc;
 
 select * from ua_store where rownum <66
 

@@ -1,6 +1,6 @@
 -----Start ROCK code-----
 DEFINE start_wk_idnt = '201819';
-DEFINE end_wk_idnt = '201824';
+DEFINE end_wk_idnt = '201825';
 DEFINE week = '2018';
 set worksheetname incremental_email_&week;
 
@@ -17,7 +17,7 @@ select distinct
    min(opened_dt)                          as first_open
 from         ua_email_contact_history hist
   inner join ua_campaign              camp  on hist.campaign_src_cd = camp.campaign_src_cd  and hist.campaign_id = camp.campaign_id
-  inner join ua_email_ref             rf    on hist.email_id        = rf.email_id           and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
+  inner join ua_email_ref             rf    on hist.email_id        = rf.email_id and rf.pref_indiv_em_flg = 'Y' 
   inner join ua_email_resolution      res   on hist.contact_urn     = res.contact_urn
   inner join ua_pos_tm_day tm on   to_date(camp.start_dt) = tm.day_dt
 where tm.wk_idnt between &start_wk_idnt and &end_wk_idnt
@@ -25,36 +25,25 @@ and res.wk_idnt between &start_wk_idnt and &end_wk_idnt
 group by hist.wk_idnt, rf.indiv_id, rf.ca_valid_email_flg
 order by hist.wk_idnt;
 
-select 
-distinct
-wk_idnt
-from weekly_emailed 
-
-
 create table weekly_control_us as
 select distinct 
-rf.indiv_id                                        as indiv_id,
-tm.wk_idnt+1                                 as wk_idnt,
-rf.ca_valid_email_flg                   as canada
+ctrl.indiv_id                                        as indiv_id,
+tm.wk_idnt+1                                 as wk_idnt
 from  unica.tmp_us_weekly_control_hh ctrl
-inner join  ua_email_ref rf on ctrl.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
 inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
   where tm.wk_idnt+1 between &start_wk_idnt and &end_wk_idnt
-  and rf.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed);
+  and ctrl.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed);
 
 create table weekly_control_can as
 select distinct 
-rf.indiv_id                                         as indiv_id,
-tm.wk_idnt+1                                  as wk_idnt,
-rf.ca_valid_email_flg                    as canada
+ctrl.indiv_id                                         as indiv_id,
+tm.wk_idnt+1                                  as wk_idnt
 from  unica.tmp_can_weekly_control_hh ctrl
-inner join  ua_email_ref rf on ctrl.email_id = rf.email_id and rf.pref_indiv_em_flg = 'Y' and rf.valid_email_mktg_flg = 'Y'
 inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
   where tm.wk_idnt+1 between &start_wk_idnt and &end_wk_idnt
-  and rf.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed);
+  and ctrl.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed);
   
-  
---emailed sales for US
+  --emailed sales for US
 SELECT 
 emailed.wk_idnt,
 count(distinct emailed.indiv_id)                                                                                                                                                                                                           as emailed_customers,
@@ -94,6 +83,7 @@ where emailed.wk_idnt between &start_wk_idnt and &end_wk_idnt and emailed.canada
 group by emailed.wk_idnt
 order by emailed.wk_idnt;
 
+  --control group sales for US
 SELECT 
 emailed.wk_idnt,
 count(distinct emailed.indiv_id)                                                                                                                                                                                                           as emailed_customers,
@@ -139,7 +129,7 @@ wk_idnt,
 canada,
 count(distinct indiv_id) as openers
 from weekly_emailed
-where wk_idnt  between 201819 and 201824
+where wk_idnt  between 201819 and 201825
 and first_open is not null
 group by  canada, wk_idnt
 order by canada, wk_idnt
@@ -191,9 +181,6 @@ left join (select
 where emailed.wk_idnt =  &end_wk_idnt and emailed.canada= 'Y'
 group by emailed.wk_idnt
 order by emailed.wk_idnt asc;
-
-select * from ua_store where rownum <66
-
 
 drop table customer_clicks;
 drop table email_product_groups_ecom;

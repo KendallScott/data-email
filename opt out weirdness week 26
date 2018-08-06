@@ -10,10 +10,9 @@ rf.dormant_flg,
 tm.wk_idnt
 from EMAIL_WK25  em
 inner join ua_email_resolution res on res.email_id = em.email_id
-inner join ua_pos_tm_day tm on to_date( res.opted_out_dt)=tm.day_dt
 inner join ua_email email on email.email_id=em.email_id
 inner join ua_email_ref rf on rf.email_id = email.email_id and rf.valid_email_mktg_flg='N'
 where opted_out_dt is  null 
-and tm.wk_idnt between 201825 and 201825
+and res.wk_idnt between 201825 and 201825
 and em.email_id not in (select email_id from EMAIL_WK26)
 group by tm.wk_idnt, em.email_id, rf.dormant_dt, rf.dormant_flg, rf.days_until_dormant, rf.valid_email_mktg_flg, email.last_open_dt, email.last_click_dt;

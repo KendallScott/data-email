@@ -1,8 +1,9 @@
+create table lost_emails as
 select 
 em.email_id,
+rf.valid_email_mktg_flg,
 email.last_open_dt,
 email.last_click_dt,
-rf.valid_email_mktg_flg,
 min(res.opted_out_dt) as opt_out_dt,
 rf.days_until_dormant, 
 rf.dormant_dt,
@@ -16,3 +17,5 @@ where opted_out_dt is  null
 and res.wk_idnt between 201825 and 201825
 and em.email_id not in (select email_id from EMAIL_WK26)
 group by res.wk_idnt, em.email_id, rf.dormant_dt, rf.dormant_flg, rf.days_until_dormant, rf.valid_email_mktg_flg, email.last_open_dt, email.last_click_dt;
+
+grant select on lost_emails to public;

@@ -1,6 +1,6 @@
 -----Start ROCK code-----
-DEFINE start_wk_idnt = '201819';
-DEFINE end_wk_idnt = '201825';
+DEFINE start_wk_idnt = '201826';
+DEFINE end_wk_idnt = '201826';
 DEFINE week = '2018';
 set worksheetname incremental_email_&week;
 
@@ -129,7 +129,7 @@ wk_idnt,
 canada,
 count(distinct indiv_id) as openers
 from weekly_emailed
-where wk_idnt  between 201819 and 201825
+where wk_idnt  between 201826 and 201826
 and first_open is not null
 group by  canada, wk_idnt
 order by canada, wk_idnt

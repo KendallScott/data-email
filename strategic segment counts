@@ -1,0 +1,44 @@
+DEFINE date_lastweek = 081418;
+DEFINE date_thisweek = 082018;
+
+
+create table mktss_compare as 
+select coalesce(a.email_id, b.email_id) as email_id,
+    a.email_id as LW_email, b.email_id as TW_email, E.email_id as LWUAE, f.email_id as TWUAE,
+            case when a.email_id is not null and e.email_id is null and f.email_id is null then 1 else 0 end as invalid,
+            case when b.email_id is null and e.email_id is not null and d.email_id is null then 1 else 0 end as unsub ,
+                  case when b.email_id is null and e.email_id is not null and d.email_id is not null then 1 else 0 end as nowdormant ,
+            case when a.email_id is null and b.email_id is not null then 1 else 0 end as newe,
+            case when a.email_id is not null and b.email_id is not null then 1 else 0 end as both,
+            case when a.email_id is not null then 1 else 0 end as LASTWK_total,
+            case when b.email_id is not null then 1 else 0 end as THISWK_total
+    from MKTSS_&date_lastweek. A 
+    full outer join mktss_&date_thisweek.  B on a.email_id = b.email_id
+    left join ua_email E on a.email_id = e.email_id
+    left join ua_email F on b.email_id = f.email_id
+    left join (select distinct email_id from unica.dormant_unica_ss) D on a.email_id = d.email_id;
+    
+/*overall*/
+select 
+count(distinct mkt.email_id)     as emails,
+count(distinct mkt.lw_email)     as lw_emails,
+count(distinct mkt.tw_email)     as tw_emails,
+sum(mkt.unsub)                               as unsubs, 
+sum(mkt.nowdormant)                 as newly_dormant,
+sum(mkt.newe)                                as new_emails,
+from mktss_compare mkt
+inner join ua_email_ref rf on rf.email_id=mkt.email_id;
+
+/*split by canada/US*/
+select 
+count(distinct mkt.email_id)     as emails,
+count(distinct mkt.lw_email)     as lw_emails,
+count(distinct mkt.tw_email)     as tw_emails,
+sum(mkt.unsub)                               as unsubs, 
+sum(mkt.nowdormant)                 as newly_dormant,
+sum(mkt.newe)                                as new_emails,
+rf.ca_valid_email_flg                      as canada
+from mktss_compare mkt
+inner join ua_email_ref rf on rf.email_id=mkt.email_id
+group by  rf.ca_valid_email_flg;
+    

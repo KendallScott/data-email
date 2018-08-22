@@ -174,7 +174,7 @@ left join (select
          inner join ua_store str on dtl.loc_key = str.loc_key
         inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
          inner join weekly_emailed emailed  on dtl.indiv_id = emailed.indiv_id and emailed.wk_idnt = dtl.wk_idnt 
-         where dtl.wk_idnt between &end_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999' and to_date(emailed.first_open)<=tm.day_dt 
+         where dtl.wk_idnt between &end_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999' and to_DATE(emailed.first_open)<=tm.day_dt 
          and emailed.canada= 'Y'
          and str.loc_cntry_desc = 'CANADA'
         group by dtl.indiv_id) stre on emailed.indiv_id = stre.indiv_id

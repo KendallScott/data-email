@@ -1,6 +1,6 @@
 -----Start ROCK code-----
-DEFINE start_wk_idnt = '201827';
-DEFINE end_wk_idnt = '201827';
+DEFINE start_wk_idnt = '201828';
+DEFINE end_wk_idnt = '201828';
 DEFINE week = '2018';
 set worksheetname incremental_email_&week;
 
@@ -129,10 +129,10 @@ wk_idnt,
 canada,
 count(distinct indiv_id) as openers
 from weekly_emailed
-where wk_idnt  between 201826 and 201826
+where wk_idnt  between 201828 and 201828
 and first_open is not null
 group by  canada, wk_idnt
-order by canada, wk_idnt
+order by canada, wk_idnt;
 
 --control canada
 SELECT 
@@ -154,7 +154,7 @@ left join (select
          where dtl.wk_idnt between &end_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'  
          and str.loc_cntry_desc = 'CANADA'
         group by dtl.indiv_id) stre on con.indiv_id = stre.indiv_id
-where con.wk_idnt =  &end_wk_idnt
+where con.wk_idnt =  &end_wk_idnt;
 
 --emailed canada
 SELECT 

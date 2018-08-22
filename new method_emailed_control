@@ -1,5 +1,5 @@
 -----Start ROCK code-----
-DEFINE start_wk_idnt = '201828';
+DEFINE start_wk_idnt = '201801';
 DEFINE end_wk_idnt = '201828';
 DEFINE week = '2018';
 set worksheetname incremental_email_&week;
@@ -7,6 +7,11 @@ set worksheetname incremental_email_&week;
 drop table weekly_emailed;
 drop table weekly_control_us;
 drop table weekly_control_can;
+
+select 
+count(distinct indiv_id)
+from weekly_control_can 
+
 
 --create table of all email ids, and us or canada from contact history
 create table weekly_emailed  as
@@ -22,6 +27,7 @@ from         ua_email_contact_history hist
   inner join ua_pos_tm_day tm on   to_date(camp.start_dt) = tm.day_dt
 where tm.wk_idnt between &start_wk_idnt and &end_wk_idnt
 and res.wk_idnt between &start_wk_idnt and &end_wk_idnt
+and  rf.ca_valid_email_flg   ='Y'
 group by hist.wk_idnt, rf.indiv_id, rf.ca_valid_email_flg
 order by hist.wk_idnt;
 
@@ -34,15 +40,30 @@ inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
   where tm.wk_idnt+1 between &start_wk_idnt and &end_wk_idnt
   and ctrl.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed);
 
+drop table weekly_control_can;
+
 create table weekly_control_can as
 select distinct 
-ctrl.indiv_id                                         as indiv_id,
+ind.indiv_id                                         as indiv_id,
 tm.wk_idnt+1                                  as wk_idnt
 from  unica.tmp_can_weekly_control_hh ctrl
 inner join  ua_pos_tm_day tm on to_date((substr(rundate, 1, 9))) = tm.day_dt
+inner join ua_individual ind on ind.hh_id=ctrl.hh_id
   where tm.wk_idnt+1 between &start_wk_idnt and &end_wk_idnt
-  and ctrl.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed);
+  and ctrl.indiv_id||tm.wk_idnt+1 not in (select indiv_id||wk_idnt from weekly_emailed)
+  and ctrl.indiv_id in (select indiv_id from ua_email_ref);
   
+  select * from unica.tmp_can_weekly_control_hh ctrl where rownum <100
+  
+select * from ua_email_ref where rownum <100
+
+select 
+count(distinct indiv_id) as customers, 
+wk_idnt
+from weekly_control_can
+group by wk_idnt
+order by wk_idnt;
+
   --emailed sales for US
 SELECT 
 emailed.wk_idnt,
@@ -136,6 +157,7 @@ order by canada, wk_idnt;
 
 --control canada
 SELECT 
+con.wk_idnt,
 count(distinct con.indiv_id)                                                                                                                                                                                                                   as emailed_customers,
 count(distinct stre.indiv_id)                                                                                                                                                                                                                   as shopping_customers,
 sum(stre.store_trans)                                                                                                                                                                                                                                as trans,
@@ -143,6 +165,7 @@ sum(stre.store_sales)                                                           
 sum(stre.store_gm)                                                                                                                                                                                                                                    as gm
 from  weekly_control_can con
 left join (select
+            con.wk_idnt,   
            dtl.indiv_id                                                              as indiv_id,
           count(distinct dtl.pos_trans_key)                   as store_trans,
           sum(dtl.extended_sls_amt)                              as store_sales,
@@ -151,10 +174,12 @@ left join (select
          inner join ua_store str on dtl.loc_key = str.loc_key
         inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
          inner join weekly_control_can con  on dtl.indiv_id = con.indiv_id and con.wk_idnt = dtl.wk_idnt 
-         where dtl.wk_idnt between &end_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'  
+         where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'  
          and str.loc_cntry_desc = 'CANADA'
-        group by dtl.indiv_id) stre on con.indiv_id = stre.indiv_id
-where con.wk_idnt =  &end_wk_idnt;
+        group by dtl.indiv_id, con.wk_idnt) stre on con.indiv_id = stre.indiv_id and con.wk_idnt =stre.wk_idnt
+where con.wk_idnt between &start_wk_idnt and  &end_wk_idnt
+group by con.wk_idnt
+order by con.wk_idnt;
 
 --emailed canada
 SELECT 
@@ -493,3 +518,7 @@ left join ua_store str on dtl.loc_key = str.loc_key and str.distt_idnt != '999'
 where tm.wk_idnt between &end_wk_idnt and &end_wk_idnt 
 group by clicks.offer_name
 order by clicks desc;
+
+drop table bopis
+
+grant select on bopis to public

@@ -1,14 +1,16 @@
 select
 e.campaign_name,
-k.cell_name, 
+k.cell_name,
 COUNT (distinct res.contact_urn) AS sent,
 COUNT (res.opened_dt) AS opens,         
-COUNT (res.max_click_dt)  AS clicks
+COUNT (res.max_click_dt)  AS clicks, 
+count (res.opted_out_dt) as opt_outs
 from ua_email_contact_history b
 join ua_campaign e on b.campaign_id = e.campaign_id
-join ua_campaign_cell k on b.segment_select_id = k.segment_select_id
-inner join ua_email_resolution res on res.contact_urn = b.contact_urn-- and res.campaign_id = e.campaign_id
-where campaign_name  like  '%20180412%'
---and output_dt >= '15-NOV-15'
-and e.campaign_id < 10000
+join ua_campaign_cell k on b.segment_select_id = k.segment_select_id and b.campaign_id=k.campaign_id
+inner join ua_email_resolution res on res.contact_urn = b.contact_urn  and res.campaign_id = e.campaign_id
+where res.wk_idnt = 201827
+and( e.campaign_name like '%WED%'
+or  upper(e.campaign_name) like '%FRAME%'
+or  upper(e.campaign_name) like '%CF%')
 group by e.campaign_name, k.cell_name;

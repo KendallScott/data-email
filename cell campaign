@@ -9,8 +9,9 @@ from ua_email_contact_history b
 join ua_campaign e on b.campaign_id = e.campaign_id
 join ua_campaign_cell k on b.segment_select_id = k.segment_select_id and b.campaign_id=k.campaign_id
 inner join ua_email_resolution res on res.contact_urn = b.contact_urn  and res.campaign_id = e.campaign_id
-where res.wk_idnt = 201827
-and( e.campaign_name like '%WED%'
-or  upper(e.campaign_name) like '%FRAME%'
-or  upper(e.campaign_name) like '%CF%')
+where res.wk_idnt between 201827  and 201827
+and  upper(e.campaign_name) like '%WEDDING%'
+and upper(e.campaign_name) not like '%TRG%'
+and  upper(e.campaign_name) not like '%CONFIRM%'
+and upper(e.campaign_name) not like '%ESTIMATE%'
 group by e.campaign_name, k.cell_name;

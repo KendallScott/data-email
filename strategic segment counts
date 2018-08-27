@@ -1,7 +1,8 @@
-DEFINE date_lastweek = 081418;
-DEFINE date_thisweek = 082018;
+drop table mktss_082018
+DEFINE date_lastweek = 082018;
+DEFINE date_thisweek = 082718;
 
-
+drop table mktss_compare;
 create table mktss_compare as 
 select coalesce(a.email_id, b.email_id) as email_id,
     a.email_id as LW_email, b.email_id as TW_email, E.email_id as LWUAE, f.email_id as TWUAE,
@@ -26,8 +27,9 @@ count(distinct mkt.tw_email)     as tw_emails,
 sum(mkt.unsub)                               as unsubs, 
 sum(mkt.nowdormant)                 as newly_dormant,
 sum(mkt.newe)                                as new_emails,
+sum(mkt.invalid)                            as invalids
 from mktss_compare mkt
-inner join ua_email_ref rf on rf.email_id=mkt.email_id;
+inner join ua_email_ref rf on rf.email_id=mkt.email_id -- and pref_indiv_em_flg='Y';
 
 /*split by canada/US*/
 select 
@@ -39,6 +41,7 @@ sum(mkt.nowdormant)                 as newly_dormant,
 sum(mkt.newe)                                as new_emails,
 rf.ca_valid_email_flg                      as canada
 from mktss_compare mkt
-inner join ua_email_ref rf on rf.email_id=mkt.email_id
+inner join ua_email_ref rf on rf.email_id=mkt.email_id and pref_indiv_em_flg='Y'
 group by  rf.ca_valid_email_flg;
-    
+
+select * from ua_email_ref where rownum <100

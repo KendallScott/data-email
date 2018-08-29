@@ -27,7 +27,7 @@ from         ua_email_contact_history hist
   inner join ua_pos_tm_day tm on   to_date(camp.start_dt) = tm.day_dt
 where tm.wk_idnt between &start_wk_idnt and &end_wk_idnt
 and res.wk_idnt between &start_wk_idnt and &end_wk_idnt
-and  rf.ca_valid_email_flg   ='Y'
+--and  rf.ca_valid_email_flg   ='Y'
 group by hist.wk_idnt, rf.indiv_id, rf.ca_valid_email_flg
 order by hist.wk_idnt;
 

@@ -1,6 +1,10 @@
-drop table mktss_082018
-DEFINE date_lastweek = 082018;
-DEFINE date_thisweek = 082718;
+DEFINE date_lastweek = 082718;
+DEFINE date_thisweek = 090418;
+
+
+create table MKTSS_&date_thisweek as
+select distinct email_id 
+from unica.valid_email_marketing_ss;
 
 drop table mktss_compare;
 create table mktss_compare as 
@@ -13,35 +17,91 @@ select coalesce(a.email_id, b.email_id) as email_id,
             case when a.email_id is not null and b.email_id is not null then 1 else 0 end as both,
             case when a.email_id is not null then 1 else 0 end as LASTWK_total,
             case when b.email_id is not null then 1 else 0 end as THISWK_total
-    from MKTSS_&date_lastweek. A 
-    full outer join mktss_&date_thisweek.  B on a.email_id = b.email_id
+    from MKTSS_&date_lastweek A 
+    full outer join mktss_&date_thisweek B on a.email_id = b.email_id
     left join ua_email E on a.email_id = e.email_id
     left join ua_email F on b.email_id = f.email_id
     left join (select distinct email_id from unica.dormant_unica_ss) D on a.email_id = d.email_id;
     
 /*overall*/
 select 
-count(distinct mkt.email_id)     as emails,
 count(distinct mkt.lw_email)     as lw_emails,
-count(distinct mkt.tw_email)     as tw_emails,
-sum(mkt.unsub)                               as unsubs, 
 sum(mkt.nowdormant)                 as newly_dormant,
+sum(mkt.unsub)                               as unsubs, 
+sum(mkt.invalid)                             as invalids,
 sum(mkt.newe)                                as new_emails,
-sum(mkt.invalid)                            as invalids
-from mktss_compare mkt
-inner join ua_email_ref rf on rf.email_id=mkt.email_id -- and pref_indiv_em_flg='Y';
+count(distinct mkt.tw_email)     as tw_emails
+from mktss_compare mkt;
+
 
 /*split by canada/US*/
 select 
-count(distinct mkt.email_id)     as emails,
+rf.ca_valid_email_flg                      as canada,
 count(distinct mkt.lw_email)     as lw_emails,
-count(distinct mkt.tw_email)     as tw_emails,
-sum(mkt.unsub)                               as unsubs, 
 sum(mkt.nowdormant)                 as newly_dormant,
+sum(mkt.unsub)                               as unsubs, 
 sum(mkt.newe)                                as new_emails,
-rf.ca_valid_email_flg                      as canada
+count(distinct mkt.tw_email)     as tw_emails
 from mktss_compare mkt
 inner join ua_email_ref rf on rf.email_id=mkt.email_id and pref_indiv_em_flg='Y'
 group by  rf.ca_valid_email_flg;
 
-select * from ua_email_ref where rownum <100
+
+
+select
+res.contact_strategy_tier,
+count(distinct email_id)
+from ua_email_contact_history res
+where res.wk_idnt = 201830
+group by res.contact_strategy_tier
+order by res.contact_strategy_tier asc;
+
+drop table not_dmailable;
+
+create table not_dmailable as 
+select
+       a.hh_id
+      ,max(case when b.auth_cd in ('DECEASED', 'PRISON') then 1 else 0 end) as PRISOND
+      ,max(case when auth_channel_cd = 'MAIL' and scope_cd in('PHYSICAL_MAIL_COMM','GLBL') and auth_flg = 'N' then 1 else 0 end) as OPTOUT
+      ,max(case when auth_channel_cd = 'MAIL' and data_src_cd in ('DMA', 'DNM') then 1 else 0 end) as DNM
+    from ua_individual a
+      inner join ua_individual_authorization b on a.indiv_id = b.indiv_id
+    group by a.hh_id
+    having max(case when b.auth_cd in ('DECEASED', 'PRISON') then 1 else 0 end) = 1
+        or max(case when auth_channel_cd = 'MAIL' and scope_cd in('PHYSICAL_MAIL_COMM','GLBL') and auth_flg = 'N' then 1 else 0 end) = 1
+        or max(case when auth_channel_cd = 'MAIL' and data_src_cd in ('DMA', 'DNM') then 1 else 0 end) = 1;
+        
+       
+drop table dmailable;
+
+create table dmailable as
+select distinct
+       hh_id
+      ,indiv_id
+      ,addr_id
+      ,country_cd
+      ,mailable_flg
+    from ua_individual
+    where pref_indiv_hh_flg = 'Y'
+      and valid_flg = '1'
+      and large_hh_flg = 'N'
+      and mailable_flg in(1,2)
+      and (namecheck_code not in ('COF', 'FRM', 'MAF', 'OFF', 'SUS') or country_cd = 'CA')
+      and hh_id not in ( select hh_id from not_dmailable where ( prisond = 1 or optout=1 or dnm=1));
+
+/*total mailable addresses */
+select count(distinct addr_id) from dmailable
+
+drop table business_driver;
+
+create table business_driver as
+ select distinct hh_id
+    from ua_model_score_addr 
+    where model_cd = 'BIZDRIVER' 
+      and scr_dt in (select max(scr_dt) from ua_model_score_addr where model_cd = 'BIZDRIVER') 
+      and addr_id in (select addr_id from dmailable);
+      
+/*mailable addresses with a Business Driver model score*/    
+select count(distinct addr_id) from business_driver
+        
+

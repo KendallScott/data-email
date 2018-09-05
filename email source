@@ -1,0 +1,16 @@
+create table  first_activity as
+select
+email_id,
+min(fst_activity_dt) as fst_activity_dt
+from ua_email_source
+group by email_id;
+
+select
+fst.fst_activity_dt,
+src.data_src_cd,
+count(distinct src.email_id) as emails
+from ua_email_source src
+inner join first_activity fst on src.email_id=fst.email_id and fst.fst_activity_dt=src.fst_activity_dt
+where fst.fst_activity_dt between '30-AUG-17' and '03-SEP-18'
+group by src.data_src_cd, fst.fst_activity_dt
+order by fst.fst_activity_dt, src.data_src_cd;

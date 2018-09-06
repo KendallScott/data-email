@@ -1,6 +1,6 @@
 -----Start ROCK code-----
-DEFINE start_wk_idnt = '201801';
-DEFINE end_wk_idnt = '201828';
+DEFINE start_wk_idnt = '201830';
+DEFINE end_wk_idnt = '201830';
 DEFINE week = '2018';
 set worksheetname incremental_email_&week;
 
@@ -20,15 +20,14 @@ select distinct
    rf.ca_valid_email_flg                 as canada,
    min(opened_dt)                          as first_open
 from         ua_email_contact_history hist
-  inner join ua_campaign              camp  on hist.campaign_src_cd = camp.campaign_src_cd  and hist.campaign_id = camp.campaign_id
   inner join ua_email_ref             rf    on hist.email_id        = rf.email_id and rf.pref_indiv_em_flg = 'Y' 
   inner join ua_email_resolution      res   on hist.contact_urn     = res.contact_urn
-  inner join ua_pos_tm_day tm on   to_date(camp.start_dt) = tm.day_dt
   inner join ua_individual ind on ind.hh_id=rf.hh_id
-where tm.wk_idnt between &start_wk_idnt and &end_wk_idnt
-and res.wk_idnt between &start_wk_idnt and &end_wk_idnt
+where  res.wk_idnt between &start_wk_idnt and &end_wk_idnt
 --and  rf.ca_valid_email_flg   ='Y'
-group by hist.wk_idnt, ind.ind
+group by hist.wk_idnt, ind.indiv_id, rf.ca_valid_email_flg ;
+
+select * from ua_email_resolution where rownum <30
 
 create table weekly_control_us as
 select distinct 
@@ -92,6 +91,7 @@ where emailed.wk_idnt between &start_wk_idnt and &end_wk_idnt and emailed.canada
 group by emailed.wk_idnt
 order by emailed.wk_idnt;
 
+
   --control group sales for US
 SELECT 
 emailed.wk_idnt,
@@ -132,13 +132,14 @@ where emailed.wk_idnt between &start_wk_idnt and &end_wk_idnt
 group by emailed.wk_idnt
 order by emailed.wk_idnt;
 
+
 --openers for US and Canada
 select
 wk_idnt,
 canada,
 count(distinct indiv_id) as openers
 from weekly_emailed
-where wk_idnt  between 201828 and 201828
+where wk_idnt  between 201830 and 201830
 and first_open is not null
 group by  canada, wk_idnt
 order by canada, wk_idnt;

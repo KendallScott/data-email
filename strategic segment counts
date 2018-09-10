@@ -103,5 +103,14 @@ create table business_driver as
       
 /*mailable addresses with a Business Driver model score*/    
 select count(distinct addr_id) from business_driver
-        
+
+/*overall emails */
+select count(distinct email_id)  from unica.valid_email_marketing_ss;
+
+/*counts for canada emails*/
+select count(distinct email_id) from unica.valid_email_canada_ss
+where email_id in (select distinct email_id from unica.valid_email_marketing_ss);
+/*counts for quebec emails*/
+select count(distinct email_id) from unica.quebec_suppression_ss
+where email_id in (select distinct email_id from unica.valid_email_marketing_ss);
 

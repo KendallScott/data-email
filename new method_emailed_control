@@ -196,3 +196,32 @@ where emailed.wk_idnt =  &end_wk_idnt and emailed.canada= 'Y'
 group by emailed.wk_idnt
 order by emailed.wk_idnt asc;
 
+drop table monthly_averages;
+create table monthly_averages as
+select
+res.email_id,
+res.wk_idnt,
+COUNT (distinct res.contact_urn) AS sent,
+COUNT (res.opened_dt) AS opens,         
+COUNT (res.max_click_dt)  AS clicks
+from ua_email_resolution res
+where res.email_id in  ( select email_id from ua_email_resolution where wk_idnt=201832)
+and res.wk_idnt between 201826 and 201831
+group by email_id, res.wk_idnt;
+
+SELECT 
+         camp.campaign_name,
+         (substr(camp.campaign_name, 1, INSTR(camp.campaign_name, ' (2018', -1))) as campaign_name,
+         COUNT (distinct res.contact_urn)                                                                                         AS sent,
+         COUNT (res.opened_dt)                                                                                                           AS opens,         
+         COUNT (res.max_click_dt)                                                                                                       AS clicks,
+         sum(sent)                                                                                                                                        as monthly_sends,
+         sum(opens)                                                                                                                                    as monthly_opens,
+         sum(clicks)                                                                                                                                     as monthly_clicks
+    FROM ua_email_resolution res
+    inner join ua_campaign camp on camp.campaign_id = res.campaign_id 
+    left join monthly_averages mth on res.email_id=mth.email_id
+where res.wk_idnt =201832    
+and res.email_id in (select email_id from ua_email_ref where ca_valid_email_flg = 'N') 
+GROUP BY  camp.campaign_name
+Order By  Camp.Campaign_Name;

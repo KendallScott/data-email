@@ -49,3 +49,22 @@ from ua_pos_trans_dtl dtl
 inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key 
 where sku.grp_desc='KIDS CRAFTS'
 and dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt);
+
+Bought wrapping not Christmas decor
+select
+count(distinct indiv_id) as customers,
+sum(extended_sls_amt) as sales
+from         ua_pos_trans_dtl dtl
+inner join ua_store str on dtl.loc_key = str.loc_key
+inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key
+where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33)               
+and sku.class_desc='107 PACKAGING ROLL WRAP'
+or(sku.class_desc='001 PACKAGING SUPPLIES'  and sku.sbclass_desc like '%CMAS ROLL WRAP')
+or sku.sbclass_desc like '%RIBBON%'
+and indiv_id not   in 
+(select indiv_id 
+from ua_pos_trans_dtl dtl 
+inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key 
+where sku.dept_desc='29 CMAS DECOR'
+and dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt);
+

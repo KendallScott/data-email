@@ -1,0 +1,51 @@
+DEFINE start_wk_idnt = '201732';
+DEFINE end_wk_idnt = '201831';
+
+
+bought Christmas not kids
+select
+count(distinct indiv_id) as customers,
+sum(extended_sls_amt) as sales
+from         ua_pos_trans_dtl dtl
+inner join ua_store str on dtl.loc_key = str.loc_key
+inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key
+where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33)               
+and sku.grp_desc='CHRISTMAS'
+and indiv_id not   in 
+(select indiv_id 
+from ua_pos_trans_dtl dtl 
+inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key 
+where sku.grp_desc='KIDS'
+and dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt);
+
+bought kids not frames
+select
+count(distinct indiv_id) as customers,
+sum(extended_sls_amt) as sales
+from         ua_pos_trans_dtl dtl
+inner join ua_store str on dtl.loc_key = str.loc_key
+inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key
+where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33)               
+and sku.grp_desc='KIDS CRAFTS'
+and indiv_id  not  in 
+(select indiv_id 
+from ua_pos_trans_dtl dtl 
+inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key 
+where  dept_desc in ('35 WALL FRAMES', '36 TABLE FRAMES/DISPLAY')
+and dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt);
+
+bought frames not kids
+select
+count(distinct indiv_id) as customers,
+sum(extended_sls_amt) as sales
+from         ua_pos_trans_dtl dtl
+inner join ua_store str on dtl.loc_key = str.loc_key
+inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key
+where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33)               
+and dept_desc in ('35 WALL FRAMES', '36 TABLE FRAMES/DISPLAY')
+and indiv_id  not  in 
+(select indiv_id 
+from ua_pos_trans_dtl dtl 
+inner join ua_pos_prod_sku sku on dtl.sku_key = sku.sku_key 
+where sku.grp_desc='KIDS CRAFTS'
+and dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt);

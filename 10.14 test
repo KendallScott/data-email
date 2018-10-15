@@ -1,0 +1,273 @@
+create table non_openers as
+select
+k.cell_name,
+rf.indiv_id
+from ua_email_contact_history b
+join ua_campaign e on b.campaign_id = e.campaign_id
+join ua_campaign_cell k on b.segment_select_id = k.segment_select_id and b.campaign_id=k.campaign_id
+inner join ua_email_resolution res on res.contact_urn = b.contact_urn  and res.campaign_id = e.campaign_id
+inner join ua_email_ref rf on rf.email_id=res.email_id and rf.pref_indiv_em_flg = 'Y' 
+where b.wk_idnt between 201836  and 201836
+and  upper(e.campaign_name) not like '%WEDDING%'
+and upper(e.campaign_name) not like '%TRG%'
+and  upper(e.campaign_name) not like '%CONFIRM%'
+and upper(e.campaign_name) not like '%ESTIMATE%'
+and k.cell_name in ('20181012_EOW_Unopen_Delay_US_Target', '20181012_EOW_Unopen_Control_US_Target')
+and res.opened_dt is not null;
+
+
+select  *  from non_openers where rownum <200
+
+
+select
+distinct cellname
+from unica.TMP_1005_US_EOW  
+
+
+drop table test_control;
+create table test_control as
+select
+case when cell.cell_name='20181012_EOW_Unopen_Control_US_Target' then cell. indiv_id else null end as control_indiv_id,
+case when cell.cell_name='20181012_EOW_Unopen_Delay_US_Target' then cell.indiv_id else null end as subject_indiv_id
+from non_openers  cell
+inner join ua_email_ref rf on cell.email_id=rf.email_id and rf.pref_indiv_em_flg = 'Y' ;
+
+select 
+count(distinct control_indiv_id) as control,
+count(distinct subject_indiv_id) as subject
+from test_control
+select
+coalesce(control_indiv_id, subject_indiv_id)
+from test_control
+
+-----Start ROCK code-----
+DEFINE start_wk_idnt = '201836';
+DEFINE end_wk_idnt = '201836';
+DEFINE start_day_idnt = '2018251';
+DEFINE end_day_idnt = '2018252';
+
+SELECT 
+count(distinct(coalesce (stre.indiv_id, ecom.indiv_id)))                                                                                                                                                             as shopping_customers,
+sum((coalesce(stre.store_trans,0))+ (coalesce(ecom.ecom_trans, 0)))                                                                                                                                 as trans,
+sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))                                                                                                                                 as sales,
+(round(sum(stre.store_gm)/sum(stre.store_sales), 4)) *   sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))            as gm
+from test_control emailed
+left join (
+          select
+          dtl.indiv_id,
+          count(distinct dtl.pos_trans_key)                   as store_trans,
+          sum(dtl.extended_sls_amt)                              as store_sales,
+          sum(dtl.grs_mrgn_amt)                                       as store_gm,
+          sum(dtl.qty)                                                              as store_units
+         from         ua_pos_trans_dtl dtl
+         inner join ua_store str on dtl.loc_key = str.loc_key
+        inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
+           where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+           and dtl.day_idnt between &start_day_idnt and &end_day_idnt
+           group by dtl.indiv_id)stre on emailed.control_indiv_id = stre.indiv_id
+   left join(
+    select
+        ecom.indiv_id,
+        count(distinct ecom.order_id)                         as ecom_trans,
+        sum(ecom.flfll_net_ttl_amt)                            as ecom_sales,
+        sum(ecom.flfll_unit_cnt)                                    as ecom_units
+        from ua_ecom_order_dtl   ecom
+        inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
+        where tm.wk_idnt between  &start_wk_idnt and &end_wk_idnt
+         and tm.day_idnt between &start_day_idnt and &end_day_idnt
+        group by ecom.indiv_id) ecom on emailed.control_indiv_id = ecom.indiv_id ;
+
+SELECT 
+count(distinct(coalesce (stre.indiv_id, ecom.indiv_id)))                                                                                                                                                             as shopping_customers,
+sum((coalesce(stre.store_trans,0))+ (coalesce(ecom.ecom_trans, 0)))                                                                                                                                 as trans,
+sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))                                                                                                                                 as sales,
+(round(sum(stre.store_gm)/sum(stre.store_sales), 4)) *   sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))            as gm
+from test_control emailed
+left join (
+          select
+          dtl.indiv_id,
+          count(distinct dtl.pos_trans_key)                   as store_trans,
+          sum(dtl.extended_sls_amt)                              as store_sales,
+          sum(dtl.grs_mrgn_amt)                                       as store_gm,
+          sum(dtl.qty)                                                              as store_units
+         from         ua_pos_trans_dtl dtl
+         inner join ua_store str on dtl.loc_key = str.loc_key
+        inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
+           where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+           and dtl.day_idnt between &start_day_idnt and &end_day_idnt
+           group by dtl.indiv_id)stre on emailed.subject_indiv_id = stre.indiv_id
+   left join(
+    select
+        ecom.indiv_id,
+        count(distinct ecom.order_id)                         as ecom_trans,
+        sum(ecom.flfll_net_ttl_amt)                            as ecom_sales,
+        sum(ecom.flfll_unit_cnt)                                    as ecom_units
+        from ua_ecom_order_dtl   ecom
+        inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
+        where tm.wk_idnt between  &start_wk_idnt and &end_wk_idnt
+        and tm.day_idnt between &start_day_idnt and &end_day_idnt
+        group by ecom.indiv_id) ecom on emailed.subject_indiv_id = ecom.indiv_id ;
+        
+-------this year metrics-------
+DEFINE start_wk_idnt = '201835';
+DEFINE end_wk_idnt = '201835';
+DEFINE start_day_idnt = '2018244';
+DEFINE end_day_idnt = '2018245';
+
+DEFINE mth = 'email_test';
+
+create table start_wk_&mth as
+select &end_wk_idnt as end_wk_idnt,
+wk_idnt as start_wk_idnt ,
+day_idnt as start_day_idnt
+from ua_pos_tm_day
+where day_dt = 
+(
+select day_dt - 357
+from
+(select max(day_dt) as day_dt
+from ua_pos_tm_day where wk_idnt = &end_wk_idnt)
+);
+
+--rolling12 
+create table rolling12trans_&mth as
+select
+coalesce(stre.indiv_id, ecom.indiv_id)                                                                                                                                                                                                                 as indiv_id,
+sum((coalesce(stre.rolling12store_sales,0))+ (coalesce(ecom.rolling12ecom_sales, 0)))                                                                                                               as total_sales,
+sum((coalesce(stre.rolling12store_trans,0))+ (coalesce(ecom.rolling12ecom_trans, 0)))                                                                                                               as total_trans,
+sum((coalesce(stre.rolling12store_units,0))+ (coalesce(ecom.rolling12ecom_units, 0)))                                                                                                               as total_units,
+sum(stre.rolling12store_gm)                                                                                                                                                                                                                                       as gm_store,
+sum(stre.rolling12store_sales)                                                                                                                                                                                                                                   as sales_store,
+(case when stre.indiv_id= ecom.indiv_id then 'omni' when stre.indiv_id >0 then 'store only' when ecom.indiv_id >0 then 'ecom only' end)         as channel
+from (select
+          dtl.indiv_id,
+          count(distinct dtl.pos_trans_key)                       as rolling12store_trans,
+          sum(dtl.extended_sls_amt)                               as rolling12store_sales,
+          sum(dtl.grs_mrgn_amt)                                   as rolling12store_gm,
+          sum(dtl.qty)                                            as rolling12store_units
+         from         ua_pos_trans_dtl dtl
+         inner join ua_store str on dtl.loc_key = str.loc_key
+         where dtl.wk_idnt between (select start_wk_idnt from start_wk_&mth) and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+         and dtl.indiv_id in (select coalesce(control_indiv_id, subject_indiv_id) from test_control)
+        group by dtl.indiv_id) stre
+    full outer join(
+    select
+        ecom.indiv_id,
+        count(distinct ecom.order_id)                           as rolling12ecom_trans,
+        sum(ecom.flfll_net_ttl_amt)                             as rolling12ecom_sales,
+        sum(ecom.flfll_unit_cnt)                                as rolling12ecom_units
+        from ua_ecom_order_dtl   ecom
+        inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
+        where tm.wk_idnt between (select start_wk_idnt from start_wk_&mth) and &end_wk_idnt
+        and ecom.indiv_id in (select coalesce(control_indiv_id, subject_indiv_id) from test_control)
+        group by ecom.indiv_id) ecom on stre.indiv_id = ecom.indiv_id
+group by stre.indiv_id, ecom.indiv_id;
+
+--time frame metrics
+create table timeframe_&mth as
+select
+(case when stre.indiv_id= ecom.indiv_id then stre.indiv_id else coalesce(stre.indiv_id, ecom.indiv_id) end)                                     as indiv_id,
+sum((coalesce(stre.store_trans,0))+ (coalesce(ecom.ecom_trans, 0)))                                                                                                                   as timeframe_trans,
+sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))                                                                                                                   as timeframe_sales,
+sum((coalesce(stre.store_units,0))+ (coalesce(ecom.ecom_units, 0)))                                                                                                                   as timeframe_units,
+sum(stre.store_gm)                                                                                                                                                                                                                         as store_gm,
+sum(stre.store_sales)                                                                                                                                                                                                                   as store_sales,
+(case when stre.indiv_id= ecom.indiv_id then 'omni' when stre.indiv_id >0 then 'store only' when ecom.indiv_id >0 then 'ecom only' end)         as channel
+from (select
+          dtl.indiv_id,
+          count(distinct dtl.pos_trans_key)                       as store_trans,
+          sum(dtl.extended_sls_amt)                               as store_sales,
+          sum(dtl.grs_mrgn_amt)                                   as store_gm,
+          sum(dtl.qty)                                            as store_units
+         from         ua_pos_trans_dtl dtl
+         inner join ua_store str on dtl.loc_key = str.loc_key
+         where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+         and dtl.indiv_id in (select coalesce(control_indiv_id, subject_indiv_id) from test_control)
+        group by dtl.indiv_id) stre
+    full outer join(
+    select
+        ecom.indiv_id,
+        count(distinct ecom.order_id)                           as ecom_trans,
+        sum(ecom.flfll_net_ttl_amt)                             as ecom_sales,
+        sum(ecom.flfll_unit_cnt)                                as ecom_units
+        from ua_ecom_order_dtl   ecom
+        inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
+        where tm.wk_idnt between &start_wk_idnt and &end_wk_idnt
+        and ecom.indiv_id in (select coalesce(control_indiv_id, subject_indiv_id) from test_control)
+        group by ecom.indiv_id) ecom on stre.indiv_id = ecom.indiv_id
+group by stre.indiv_id, ecom.indiv_id;
+
+--new  and reactivated customers   
+create table last_shop_excl_&mth as
+select
+       dtl.indiv_id,
+       max(dtl.day_idnt) as last_shop
+    from ua_pos_trans_dtl dtl inner join ua_store str on dtl.loc_key = str.loc_key
+    inner join timeframe_&mth mth on dtl.indiv_id = mth.indiv_id
+    where dtl.wk_idnt < &start_wk_idnt and dtl.trans_typ_key in(19,22,33) group by dtl.indiv_id;
+
+--new and reactivated customers
+create table new_cust_&mth as
+  select            
+  distinct (indiv_id)     
+  from timeframe_&mth
+  where indiv_id not in (select distinct indiv_id from last_shop_excl_&mth);
+
+create table react_cust_&mth as
+    select distinct(indiv_id)
+    from timeframe_&mth
+    where indiv_id in (select distinct indiv_id from last_shop_excl_&mth where last_shop <= (select start_day_idnt from start_wk_&mth));
+
+create table new_react_cust_&mth as
+    select distinct indiv_id
+    from new_cust_&mth
+    union
+    select distinct indiv_id
+    from react_cust_&mth;
+
+--define customer groups
+create table cust_groups_&mth as
+    select
+       case when new_react.indiv_id is not null               then 'new'
+            when rolling.total_trans >= 6                                   then 'top'
+            when rolling.total_trans >= 3                                   then 'middle'
+            when rolling.total_trans >= 1                                    then 'bottom'
+                                                          else 'z.error'
+       end                                                as custgroup,
+       rolling.indiv_id
+      from        rolling12trans_&mth rolling
+      left join new_react_cust_&mth new_react             on rolling.indiv_id = new_react.indiv_id;
+      
+SELECT 
+cust.custgroup,
+count(distinct(coalesce (stre.indiv_id, ecom.indiv_id)))                                                                                                                                                             as shopping_customers,
+sum((coalesce(stre.store_trans,0))+ (coalesce(ecom.ecom_trans, 0)))                                                                                                                                 as trans,
+sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))                                                                                                                                 as sales,
+(round(sum(stre.store_gm)/sum(stre.store_sales), 4)) *   sum((coalesce(stre.store_sales,0))+ (coalesce(ecom.ecom_sales, 0)))            as gm
+from test_control emailed
+inner join cust_groups_&mth cust on emailed.control_indiv_id=cust.indiv_id
+left join (
+          select
+          dtl.indiv_id,
+          count(distinct dtl.pos_trans_key)                   as store_trans,
+          sum(dtl.extended_sls_amt)                              as store_sales,
+          sum(dtl.grs_mrgn_amt)                                       as store_gm,
+          sum(dtl.qty)                                                              as store_units
+         from         ua_pos_trans_dtl dtl
+         inner join ua_store str on dtl.loc_key = str.loc_key
+        inner join ua_pos_tm_day tm on dtl.day_idnt= tm.day_idnt
+           where dtl.wk_idnt between &start_wk_idnt and &end_wk_idnt and dtl.trans_typ_key in(19,22,33) and str.distt_idnt != '999'
+           and dtl.day_idnt between &start_day_idnt and &end_day_idnt
+           group by dtl.indiv_id)stre on emailed.control_indiv_id = stre.indiv_id
+   left join(
+    select
+        ecom.indiv_id,
+        count(distinct ecom.order_id)                         as ecom_trans,
+        sum(ecom.flfll_net_ttl_amt)                            as ecom_sales,
+        sum(ecom.flfll_unit_cnt)                                    as ecom_units
+        from ua_ecom_order_dtl   ecom
+        inner join ua_pos_tm_day tm on to_date(ecom.flfll_first_dt) = (tm.day_dt)
+        where tm.wk_idnt between  &start_wk_idnt and &end_wk_idnt
+         and tm.day_idnt between &start_day_idnt and &end_day_idnt
+        group by ecom.indiv_id) ecom on emailed.control_indiv_id = ecom.indiv_id 
+        group by cust.custgroup;
